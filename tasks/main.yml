@@ -33,6 +33,17 @@
 - name: Only install or upgrade Kimai if the user account exists
   block:
 
+    - name: GitHub GPG key present
+      copy:
+        src: files/github.asc
+        dest: "{{ kimai_home }}/private/github.asc"
+
+    - name: GitLab GPG public key imported
+      command: "gpg --import {{ kimai_home }}/private//github.asc"
+      register: kimai_gpg_import
+      changed_when: '"not changed" not in kimai_gpg_import.stderr'
+      check_mode: false
+
     - name: Kimai git repo present
       git:
         repo: https://github.com/kevinpapst/kimai2.git
