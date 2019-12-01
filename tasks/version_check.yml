@@ -11,14 +11,14 @@
     - kimai
 
 - name: Debug Kimai latest URI
-debug:
-  msg:
-    - "Location: {{ kimai_latest_headers.location }}"
-    - "Path: {{ kimai_latest_headers.location | urlsplit('path') }}"
-    - "Version: {{ kimai_latest_headers.location | urlsplit('path') | basename }}"
-  verbosity: 1
-tags:
-  - kimai
+  debug:
+    msg:
+      - "Location: {{ kimai_latest_headers.location }}"
+      - "Path: {{ kimai_latest_headers.location | urlsplit('path') }}"
+      - "Version: {{ kimai_latest_headers.location | urlsplit('path') | basename }}"
+    verbosity: 1
+  tags:
+    - kimai
 
 - name: Set a fact for the latest versio of Kimai
   set_fact:

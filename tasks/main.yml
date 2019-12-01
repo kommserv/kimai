@@ -11,4 +11,14 @@
   include_tasks: version_check.yml
   tags:
     - kimai
+
+- name: Kimai git repo present
+  git:
+    repo: https://github.com/kevinpapst/kimai2.git
+    dest: "{{ kimai_docroot }}"
+    version: "{{ kimai_version }}"
+    verify_commit: true
+  become_user: "{{ kimai_user }}"
+  tags:
+    - kimai
 ...
