@@ -1,0 +1,14 @@
+---
+- name: Check that all the variables needed are defined
+  assert:
+    that:
+      - kimai_user is defined
+      - kimai_version is defined
+  tags:
+    - kimai
+
+- name: Check what the latest version of Kimai is
+  include_tasks: version_check.yml
+  tags:
+    - kimai
+...

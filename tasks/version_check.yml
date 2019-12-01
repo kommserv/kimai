@@ -1,0 +1,39 @@
+---
+- name: Check the latest version of Kimai
+  uri:
+    url: https://github.com/kevinpapst/kimai2/releases/latest
+    method: HEAD
+    status_code: 302
+    follow_redirects: none
+  check_mode: false
+  register: kimai_latest_headers
+  tags:
+    - kimai
+
+- name: Debug Kimai latest URI
+debug:
+  msg:
+    - "Location: {{ kimai_latest_headers.location }}"
+    - "Path: {{ kimai_latest_headers.location | urlsplit('path') }}"
+    - "Version: {{ kimai_latest_headers.location | urlsplit('path') | basename }}"
+  verbosity: 1
+tags:
+  - kimai
+
+- name: Set a fact for the latest versio of Kimai
+  set_fact:
+    kimai_latest: "{{ kimai_latest_headers.location | urlsplit('path') | basename }}"
+  tags:
+    - kimai
+
+- name: Warn if kimai_version is not equal to kimai_latest
+  debug:
+    msg:
+      - "The kimai_version variable is set to {{ kimai_version }}"
+      - "The kimai_latest variable is set to {{ kimai_latest }}"
+  when:
+    - ( kimai_version is defined ) and ( kimai_latest is defined )
+    - ( kimai_version | int != kimai_latest | int )
+  tags:
+    - kimai
+...
