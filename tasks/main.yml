@@ -22,7 +22,13 @@
       - kimai_dbhost is defined
       - kimai_dbport is defined
       - kimai_dbname is defined
+      - kimai_admin_user is defined
+      - kimai_admin_email is defined
       - kimai_notify_from is defined
+      - kimai_notify_reply_to is defined
+      - kimai_notify_subject_tag is defined
+      - kimai_notify_headers is defined
+      - kimai_notify_signature is defined
       - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
   tags:
     - kimai
@@ -101,7 +107,7 @@
 
     - name: Decode and set a fact based on the app secret file contents
       set_fact:
-        kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"  
+        kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"
 
     - name: .env present
       template:
@@ -112,11 +118,18 @@
         mode: 0640
 
     - name: Install Kimai
-      command: bin/console kimai:install -n
+      command: bin/console --no-ansi -n kimai:install
       args:
         chdir: "{{ kimai_docroot | dirname }}"
       register: kimai_install
-      failed_when: ( "Successfully installed Kimai 2 version {{ kimai_version}} " not in kimai_install.stdout )
+      failed_when: ( "Successfully installed Kimai 2 version {{ kimai_version }} " not in kimai_install.stdout )
+      become_user: "{{ kimai_user }}"
+
+    - name: Add admin user
+      command: "bin/console --no-ansi -n kimai:create-user {{ kimai_admin_user | quote }}"
+      args:
+        chdir: "{{ kimai_docroot | dirname }}"
+      register: kimai_admin_user
       become_user: "{{ kimai_user }}"
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
