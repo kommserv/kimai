@@ -13,6 +13,7 @@
   assert:
     that:
       - kimai_user is defined
+      - kimai_home is defined
       - kimai_version is defined
   tags:
     - kimai
@@ -37,12 +38,14 @@
       copy:
         src: files/github.asc
         dest: "{{ kimai_home }}/private/github.asc"
+      become_user: "{{ kimai_user }}"
 
     - name: GitLab GPG public key imported
       command: "gpg --import {{ kimai_home }}/private//github.asc"
       register: kimai_gpg_import
       changed_when: '"not changed" not in kimai_gpg_import.stderr'
       check_mode: false
+      become_user: "{{ kimai_user }}"
 
     - name: Kimai git repo present
       git:
