@@ -1,4 +1,14 @@
 ---
+- name: Required packages present
+  apt:
+    pkg:
+      - git
+      - gnupg
+      - pwgen
+    state: present
+  tags:
+   - kimai
+
 - name: Check that all the variables needed are defined
   assert:
     that:
@@ -12,13 +22,29 @@
   tags:
     - kimai
 
-- name: Kimai git repo present
-  git:
-    repo: https://github.com/kevinpapst/kimai2.git
-    dest: "{{ kimai_docroot }}"
-    version: "{{ kimai_version }}"
-    verify_commit: true
-  become_user: "{{ kimai_user }}"
+- name: "Check if the Kimai {{ kimai_user }} user account exists"
+  shell: "id {{ kimai_user }} && echo PRESENT || echo ABSENT"
+  check_mode: false
+  register: kimai_user_check
+  changed_when: '"no such user" in kimai_user_check.stderr'
+  tags:
+    - kimai
+
+- name: Only install or upgrade Kimai if the user account exists
+  block:
+
+    - name: Kimai git repo present
+      git:
+        repo: https://github.com/kevinpapst/kimai2.git
+        dest: "{{ kimai_docroot }}"
+        version: "{{ kimai_version }}"
+        clone: true
+        update: true
+        force: true
+        verify_commit: true
+      become_user: "{{ kimai_user }}"
+
+  when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
   tags:
     - kimai
 ...
