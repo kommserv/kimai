@@ -48,6 +48,11 @@
       check_mode: false
       become_user: "{{ kimai_user }}"
 
+    - name: DocumentRoot public directory absent
+      file:
+        path: "{{ kimai_docroot }}"
+        state: absent
+
     - name: Kimai git repo present
       git:
         repo: https://github.com/kevinpapst/kimai2.git
