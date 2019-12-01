@@ -15,6 +15,7 @@
       - kimai_user is defined
       - kimai_home is defined
       - kimai_version is defined
+      - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
   tags:
     - kimai
 
@@ -50,7 +51,7 @@
     - name: Kimai git repo present
       git:
         repo: https://github.com/kevinpapst/kimai2.git
-        dest: "{{ kimai_docroot }}"
+        dest: "{{ kimai_docroot | dirname }}"
         version: "{{ kimai_version }}"
         depth: 1
         clone: true
@@ -58,6 +59,28 @@
         force: true
         verify_commit: true
       become_user: "{{ kimai_user }}"
+
+    - name: Composer install
+      composer:
+        command: install
+        working_dir: "{{ kimai_docroot | dirname }}"
+        optimize_autoloader: true
+        no_dev: true
+      become_user: "{{ kimai_user }}"
+
+#    - name: .env present
+#      template:
+#        src: templates/env.j2
+#        dest: "{{ kimai_docroot | dirname }}/.env"
+#        owner: "{{ kimai_user }}"
+#        group: "{{ kimai_group | default(kimai_user) }}"
+#        mode: 0640
+#
+#    - name: Install Kimai
+#      command: bin/console kimai:install -n
+#      args:
+#        chdir: "{{ kimai_docroot | dirname }}"
+#      become_user: "{{ kimai_user }}"
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
   tags:
