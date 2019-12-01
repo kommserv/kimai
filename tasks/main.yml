@@ -9,6 +9,7 @@
   tags:
     - kimai
 
+# Additional check on the following variables could be added
 - name: Check that all the variables needed are defined
   assert:
     that:
