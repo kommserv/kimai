@@ -115,6 +115,8 @@
       command: bin/console kimai:install -n
       args:
         chdir: "{{ kimai_docroot | dirname }}"
+      register: kimai_install
+      failed_when: ( "Successfully installed Kimai 2 version {{ kimai_version}} " not in kimai_install.stdout )
       become_user: "{{ kimai_user }}"
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
