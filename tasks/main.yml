@@ -7,7 +7,7 @@
       - pwgen
     state: present
   tags:
-   - kimai
+    - kimai
 
 - name: Check that all the variables needed are defined
   assert:
