@@ -73,19 +73,26 @@
         no_dev: true
       become_user: "{{ kimai_user }}"
 
-#    - name: .env present
-#      template:
-#        src: templates/env.j2
-#        dest: "{{ kimai_docroot | dirname }}/.env"
-#        owner: "{{ kimai_user }}"
-#        group: "{{ kimai_group | default(kimai_user) }}"
-#        mode: 0640
-#
-#    - name: Install Kimai
-#      command: bin/console kimai:install -n
-#      args:
-#        chdir: "{{ kimai_docroot | dirname }}"
-#      become_user: "{{ kimai_user }}"
+    - name: Add Kimai console to PATH in ~/.bashrc
+      lineinfile:
+        path: "{{ kimai_home }}/.bashrc"
+        line: 'export PATH="{{ kimai_docroot | dirname }}/bin:${HOME}/bin:${PATH}"'
+        regexp: '^export PATH='
+        create: yes
+
+    - name: .env present
+      template:
+        src: templates/env.j2
+        dest: "{{ kimai_docroot | dirname }}/.env"
+        owner: "{{ kimai_user }}"
+        group: "{{ kimai_group | default(kimai_user) }}"
+        mode: 0640
+
+    - name: Install Kimai
+      command: bin/console kimai:install -n
+      args:
+        chdir: "{{ kimai_docroot | dirname }}"
+      become_user: "{{ kimai_user }}"
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
   tags:
