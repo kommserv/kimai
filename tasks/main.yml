@@ -78,7 +78,22 @@
         path: "{{ kimai_home }}/.bashrc"
         line: 'export PATH="{{ kimai_docroot | dirname }}/bin:${HOME}/bin:${PATH}"'
         regexp: '^export PATH='
-        create: yes
+        create: true
+
+    - name: Kimai app secret present
+      shell: "pwgen -n 75 1 > {{ kimai_docroot | dirname }}/app_secret.txt"
+      args:
+        creates: "{{ kimai_docroot | dirname }}/app_secret.txt"
+      become_user: "{{ kimai_user }}"
+
+    - name: Slurp a base64 encoded version of the app secret
+      slurp:
+        src: "{{ kimai_docroot | dirname }}/app_secret.txt"
+      register: kimai_app_secret_b64encoded
+
+    - name: Decode and set a fact based on the app secret file contents
+      set_fact:
+        kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"  
 
     - name: .env present
       template:
