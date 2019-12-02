@@ -132,6 +132,28 @@
         group: "{{ kimai_group | default(kimai_user) }}"
         mode: 0640
 
+    - name: Conditionally set the transport to sendmail
+      blockinfile:
+        path: "{{ kimai_docroot | dirname }}config/packages/local.yaml"
+        block: |
+          swiftmailer:
+            transport: sendmail
+            command: {{ kimai_sendmail_command }}
+        create: true
+        owner: "{{ kimai_user }}"
+        group: "{{ kimai_group | default(kimai_user) }}"
+      register: kimai_transport_sendmail
+      when: ( kimai_transport is defined ) and ( kimai_transport == "sendmail" ) 
+
+    - name: Flush and warm up the cache if the transport has changed
+      command: "bin/console {{ cmd }}"
+      args:
+        chdir: "{{ kimai_docroot | dirname }}"
+      become_user: "{{ kimai_user }}"
+      loop:
+        - cache:clear --env=prod
+        - cache:warmup --env=prod
+
     - name: Install Kimai
       block:
 

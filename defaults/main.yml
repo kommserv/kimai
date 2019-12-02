@@ -3,6 +3,7 @@
 kimai_version: 1.6.2
 kimai_app_env: prod
 kimai_user: www-data
+kimai_group: www-data
 kimai_home: /var/www
 kimai_docroot: /var/www/kimai/public
 # The MySQL user, password and database name need to be set using these variables:
@@ -15,4 +16,7 @@ kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
 # If these variables are set then the admin user will be created on install
 # kimai_admin_user:
 # kimai_admin_email:
+# Set kimai_transport to sendmail to use the kimai_sendmail_command
+# kimai_transport: smtp
+# kimai_sendmail_command: /usr/sbin/sendmail -t -i
 ...
