@@ -153,6 +153,9 @@
       loop:
         - cache:clear --env=prod
         - cache:warmup --env=prod
+      loop_control:
+        loop_var: cmd
+        label: "{{ cmd }}"
 
     - name: Install Kimai
       block:
