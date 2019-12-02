@@ -22,15 +22,15 @@
 
 - name: Set a fact for the latest versio of Kimai
   set_fact:
-    kimai_latest: "{{ kimai_latest_headers.location | urlsplit('path') | basename }}"
+    kimai_latest: "{{ kimai_latest_headers.location | urlsplit('path') | basename | int }}"
   tags:
     - kimai
 
 - name: Warn if kimai_version is not equal to kimai_latest
   debug:
     msg:
-      - "The kimai_version variable is set to {{ kimai_version }}"
-      - "The kimai_latest variable is set to {{ kimai_latest }}"
+      - "The kimai_version variable is set to {{ kimai_version | int }}"
+      - "The kimai_latest variable is set to {{ kimai_latest | int }}"
   when:
     - ( kimai_version is defined ) and ( kimai_latest is defined )
     - ( kimai_version | int != kimai_latest | int )

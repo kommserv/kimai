@@ -72,7 +72,7 @@
     # stdout is in the form: Kimai 2 - 1.6.1 stable (Ayumi) by Kevin Papst and contributors.
     - name: Set a variable for the installed version
       set_fact:
-        kimai_installed: "{{ kimai_install_check.stdout.split(' ')[4] }}"
+        kimai_installed: "{{ kimai_install_check.stdout.split(' ')[4] | int }}"
       when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
 
     - name: Clone Kimai git repo
@@ -157,14 +157,14 @@
 
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined ) 
-        - ( kimai_installed | version_compare(kimai_version, '<') )
+        - ( kimai_installed | int | version_compare(kimai_version, '<') )
 
     - name: A update is available
       debug:
         msg: "Kimai version {{ kimai_installed }} is iinstalled and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
       when:
         - ( kimai_latest is defined ) and ( kimai_installed is defined )
-        - ( kimai_installed | version_compare(kimai_latest, '<') )
+        - ( kimai_installed | int | version_compare(kimai_latest, '<') )
 
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
