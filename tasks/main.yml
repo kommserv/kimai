@@ -162,7 +162,7 @@
           become_user: "{{ kimai_user }}"
 
       when:
-        - ( kimai_version is defined ) and ( kimai_installed is defined ) 
+        - ( kimai_version is defined ) and ( kimai_installed is defined )
         - ( kimai_installed | int is version(kimai_version, '<') )
 
     - name: A update is available
