@@ -33,7 +33,6 @@
 
 - name: "Check if the Kimai {{ kimai_user }} user account exists"
   shell: "id {{ kimai_user }} && echo PRESENT || echo ABSENT"
-  check_mode: false
   register: kimai_user_check
   check_mode: false
   changed_when: '"no such user" in kimai_user_check.stderr'
@@ -160,7 +159,7 @@
             label: "{{ cmd }}"
           when: ( kimai_transport_sendmail is defined ) and ( kimai_transport_sendmail.changed )
 
-      when: ( kimai_transport is defined ) and ( kimai_transport == "sendmail" ) 
+      when: ( kimai_transport is defined ) and ( kimai_transport == "sendmail" )
 
     - name: Install Kimai
       block:
