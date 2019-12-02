@@ -138,7 +138,6 @@
           args:
             chdir: "{{ kimai_docroot | dirname }}"
           register: kimai_install
-          failed_when: ( "Successfully installed Kimai 2 version {{ kimai_version }} " not in kimai_install.stdout )
           become_user: "{{ kimai_user }}"
 
         - name: Create first user
@@ -182,7 +181,6 @@
           args:
             chdir: "{{ kimai_docroot | dirname }}"
           register: kimai_update
-          failed_when: ( "Successfully updated Kimai 2 version {{ kimai_version }} " not in kimai_update.stdout )
           become_user: "{{ kimai_user }}"
 
       when:
