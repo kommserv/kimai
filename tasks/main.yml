@@ -111,7 +111,7 @@
               register: kimai_admin_pwgen
 
             - name: Create admin user account
-              command: "bin/console --no-ansi -n kimai:create-user {{ kimai_admin_user | quote }} {{ kimai_admin_email | quote }} {{ kimai_admin_pwgen.stdout | trim | quote }}"
+              command: "bin/console --no-ansi -n kimai:create-user {{ kimai_admin_user | quote }} {{ kimai_admin_email | quote }} ROLE_SUPER_ADMIN {{ kimai_admin_pwgen.stdout | trim | quote }}"
               args:
                 chdir: "{{ kimai_docroot | dirname }}"
               register: kimai_create_user
