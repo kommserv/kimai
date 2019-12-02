@@ -33,7 +33,7 @@
       - "The kimai_latest variable is set to {{ kimai_latest | int }}"
   when:
     - ( kimai_version is defined ) and ( kimai_latest is defined )
-    - ( kimai_version | int != kimai_latest | int )
+    - ( kimai_version != kimai_latest )
   tags:
     - kimai
 ...
