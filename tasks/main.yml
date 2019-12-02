@@ -35,6 +35,7 @@
   shell: "id {{ kimai_user }} && echo PRESENT || echo ABSENT"
   check_mode: false
   register: kimai_user_check
+  check_mode: false
   changed_when: '"no such user" in kimai_user_check.stderr'
   tags:
     - kimai
@@ -66,10 +67,11 @@
       shell: bin/console --no-ansi -n kimai:version || echo ABSENT
       args:
         chdir: "{{ kimai_docroot | dirname }}"
+      check_mode: false
+      changed_when: false
       register: kimai_install_check
       become_user: "{{ kimai_user }}"
 
-    # stdout is in the form: Kimai 2 - 1.6.1 stable (Ayumi) by Kevin Papst and contributors.
     - name: Set a variable for the installed version
       set_fact:
         kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
@@ -140,7 +142,7 @@
           register: kimai_install
           become_user: "{{ kimai_user }}"
 
-        - name: Create first user
+        - name: Create the admin super user
           block:
 
             - name: "Random password for {{ kimai_admin_user }} generated"
