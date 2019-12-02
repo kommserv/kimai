@@ -207,7 +207,7 @@
             verify_commit: true
           become_user: "{{ kimai_user }}"
 
-        - name: "Update Kimaii from version {{ kimai_installed }} to version {{ kimai_version }}"
+        - name: "Update Kimai from version {{ kimai_installed }} to version {{ kimai_version }}"
           command: bin/console --no-ansi -n kimai:update
           args:
             chdir: "{{ kimai_docroot | dirname }}"
