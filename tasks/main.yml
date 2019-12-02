@@ -192,7 +192,7 @@
         msg: "Kimai version {{ kimai_installed }} is installed and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
       when:
         - ( kimai_latest is defined ) and ( kimai_installed is defined )
-        - ( kimai_installed | int is version(kimai_latest, '<') )
+        - ( kimai_installed is version(kimai_latest, '<') )
 
   when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
   tags:
