@@ -27,7 +27,7 @@
     - kimai
 
 - name: Check what the latest version of Kimai is
-  include_tasks: version_check.yml
+  include_tasks: version.yml
   tags:
     - kimai
 
@@ -165,6 +165,7 @@
           args:
             chdir: "{{ kimai_docroot | dirname }}"
           register: kimai_update
+          failed_when: ( "Successfully updated Kimai 2 version {{ kimai_version }} " not in kimai_update.stdout )
           become_user: "{{ kimai_user }}"
 
       when:

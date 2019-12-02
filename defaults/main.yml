@@ -2,6 +2,13 @@
 # https://github.com/kevinpapst/kimai2/releases
 kimai_version: 1.6.2
 kimai_app_env: prod
+kimai_user: www-data
+kimai_home: /var/www
+kimai_docroot: /var/www/kimai/public
+# The MySQL user, password and database name need to be set using these variables:
+# kimai_dbuser:
+# kimai_dbpass:
+# kimai_dbname:
 kimai_dbhost: localhost
 kimai_dbport: 3306
 ...
