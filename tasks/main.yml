@@ -73,12 +73,6 @@
     - name: Set a variable for the installed version
       set_fact:
         kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-        kimai_installed_test_one: "{{ kimai_install_check.stdout.split(' ')[0] }}"
-        kimai_installed_test_two: "{{ kimai_install_check.stdout.split(' ')[1] }}"
-        kimai_installed_test_three: "{{ kimai_install_check.stdout.split(' ')[2] }}"
-        kimai_installed_test_four: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-        kimai_installed_test_five: "{{ kimai_install_check.stdout.split(' ')[4] }}"
-        kimai_installed_test_six: "{{ kimai_install_check.stdout.split(' ')[3] }}"
       when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
 
     - name: Clone Kimai git repo
@@ -154,7 +148,7 @@
     - name: "Update Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
       block:
 
-        - name: Install Kimai
+        - name: Update Kimai
           command: bin/console --no-ansi -n kimai:update
           args:
             chdir: "{{ kimai_docroot | dirname }}"
@@ -163,11 +157,11 @@
 
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined )
-        - ( kimai_installed | int is version(kimai_version, '<') )
+        - ( kimai_installed is version(kimai_version, '<') )
 
     - name: A update is available
       debug:
-        msg: "Kimai version {{ kimai_installed }} is iinstalled and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
+        msg: "Kimai version {{ kimai_installed }} is installed and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
       when:
         - ( kimai_latest is defined ) and ( kimai_installed is defined )
         - ( kimai_installed | int is version(kimai_latest, '<') )
