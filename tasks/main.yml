@@ -148,6 +148,18 @@
     - name: "Update Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
       block:
 
+        - name: "Kimai git repo updated to version {{ kimai_version }}"
+          git:
+            repo: https://github.com/kevinpapst/kimai2.git
+            dest: "{{ kimai_docroot | dirname }}"
+            version: "{{ kimai_version }}"
+            depth: 1
+            clone: true
+            update: true
+            force: false
+            verify_commit: true
+          become_user: "{{ kimai_user }}"
+
         - name: Update Kimai
           command: bin/console --no-ansi -n kimai:update
           args:
