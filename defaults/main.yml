@@ -11,4 +11,8 @@ kimai_docroot: /var/www/kimai/public
 # kimai_dbname:
 kimai_dbhost: localhost
 kimai_dbport: 3306
+kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
+# If these variables are set then the admin user will be created on install
+# kimai_admin_user:
+# kimai_admin_email:
 ...
