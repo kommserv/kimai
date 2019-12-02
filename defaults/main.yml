@@ -1,6 +1,6 @@
 ---
 # https://github.com/kevinpapst/kimai2/releases
-kimai_version: 1.6.1
+kimai_version: 1.6.2
 kimai_app_env: prod
 kimai_dbhost: localhost
 kimai_dbport: 3306
