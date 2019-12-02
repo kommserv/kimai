@@ -72,7 +72,7 @@
     # stdout is in the form: Kimai 2 - 1.6.1 stable (Ayumi) by Kevin Papst and contributors.
     - name: Set a variable for the installed version
       set_fact:
-        kimai_installed: "{{ kimai_install_check.stdout | string.split(' ')[4] }}"
+        kimai_installed: "{{ kimai_install_check.stdout.string.split(' ')[4] }}"
       when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
 
     - name: Clone Kimai git repo
