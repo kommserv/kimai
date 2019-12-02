@@ -136,7 +136,7 @@
 
         - name: Mail transport set to sendmail
           blockinfile:
-            path: "{{ kimai_docroot | dirname }}config/packages/local.yaml"
+            path: "{{ kimai_docroot | dirname }}/config/packages/local.yaml"
             block: |
               swiftmailer:
                 transport: sendmail
