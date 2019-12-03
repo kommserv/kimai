@@ -5,6 +5,7 @@ kimai_app_env: prod
 kimai_user: www-data
 kimai_group: www-data
 kimai_home: /var/www
+kimai_private: "{{ kimai_home }}/private"
 kimai_docroot: /var/www/kimai/public
 # The MySQL user, password and database name need to be set using these variables:
 # kimai_dbuser:
