@@ -23,7 +23,7 @@ kimai_email_host: localhost
 kimai_email_port: 25
 kimai_email_username: ""
 kimai_email_password: ""
-kimai_email_encryption: tls
-kimai_email_auth_mode: plain
+kimai_email_encryption: "" 
+kimai_email_auth_mode: ""
 kimai_email_command: /usr/sbin/sendmail -t -i
 ...
