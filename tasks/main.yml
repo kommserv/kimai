@@ -153,7 +153,7 @@
             create: true
             owner: "{{ kimai_user }}"
             group: "{{ kimai_group | default(kimai_user) }}"
-          register: kimai_transport_sendmail
+          register: kimai_email_transport_sendmail
 
         - name: Cache flushed and then warmed if the transport has changed
           command: "bin/console {{ cmd }}"
@@ -166,9 +166,9 @@
           loop_control:
             loop_var: cmd
             label: "{{ cmd }}"
-          when: ( kimai_transport_sendmail is defined ) and ( kimai_transport_sendmail.changed )
+          when: ( kimai_email_transport_sendmail is defined ) and ( kimai_email_transport_sendmail.changed )
 
-      when: ( kimai_transport is defined ) and ( kimai_transport == "sendmail" )
+      when: ( kimai_email_transport is defined ) and ( kimai_email_transport == "sendmail" )
 
     - name: Install Kimai
       block:
