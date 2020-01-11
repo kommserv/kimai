@@ -18,13 +18,12 @@ kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
 # kimai_admin_user:
 # kimai_admin_email:
 # https://symfony.com/doc/current/reference/configuration/swiftmailer.html
-# Set kimai_transport to sendmail to use the kimai_sendmail_command
 kimai_email_transport: sendmail
+kimai_email_command: /usr/sbin/sendmail -t -i
 kimai_email_host: localhost
 kimai_email_port: 25
 kimai_email_username: ""
 kimai_email_password: ""
 kimai_email_encryption: tls
 kimai_email_auth_mode: plain
-kimai_email_command: /usr/sbin/sendmail -t -i
 ...
