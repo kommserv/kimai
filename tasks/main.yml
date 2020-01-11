@@ -23,6 +23,7 @@
       - kimai_dbport is defined
       - kimai_dbname is defined
       - kimai_notify_from is defined
+      - ( kimai_email_transport is defined ) and ( kimai_email_transport is regex("^[smtp|sendmail|gmail]$") or kimai_email_transport == "" )
   tags:
     - kimai
 
