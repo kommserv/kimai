@@ -1,39 +1,21 @@
 ---
-- name: Check the latest version of Kimai
-  uri:
-    url: https://github.com/kevinpapst/kimai2/releases/latest
-    method: HEAD
-    status_code: 302
-    follow_redirects: none
-  check_mode: false
-  register: kimai_latest_headers
-  tags:
-    - kimai
+- name: Check the installed version of Kimai
+  block:
 
-- name: Debug Kimai latest URI
-  debug:
-    msg:
-      - "Location: {{ kimai_latest_headers.location }}"
-      - "Path: {{ kimai_latest_headers.location | urlsplit('path') }}"
-      - "Version: {{ kimai_latest_headers.location | urlsplit('path') | basename }}"
-    verbosity: 1
-  tags:
-    - kimai
+    - name: Check if Kimai is installed and if it is which version is installed
+      shell: bin/console --no-ansi -n kimai:version || echo ABSENT
+      args:
+        chdir: "{{ kimai_docroot | dirname }}"
+      check_mode: false
+      changed_when: false
+      register: kimai_install_check
+      become_user: "{{ kimai_user }}"
 
-- name: Set a fact for the latest versio of Kimai
-  set_fact:
-    kimai_latest: "{{ kimai_latest_headers.location | urlsplit('path') | basename }}"
-  tags:
-    - kimai
+    - name: Set a variable for the installed version
+      set_fact:
+        kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
+      when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
 
-- name: Warn if kimai_version is not equal to kimai_latest
-  debug:
-    msg:
-      - "The kimai_version variable is set to {{ kimai_version }}"
-      - "The kimai_latest variable is set to {{ kimai_latest }}"
-  when:
-    - ( kimai_version is defined ) and ( kimai_latest is defined )
-    - ( kimai_version != kimai_latest )
   tags:
     - kimai
 ...

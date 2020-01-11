@@ -7,6 +7,10 @@ kimai_group: www-data
 kimai_home: /var/www
 kimai_private: "{{ kimai_home }}/private"
 kimai_docroot: /var/www/kimai/public
+kimai_tz: Europe/London
+kimai_locale: en
+kimai_country: GB
+kimai_currency: GBP
 # The MySQL user, password and database name need to be set using these variables:
 # kimai_dbuser:
 # kimai_dbpass:
@@ -14,7 +18,7 @@ kimai_docroot: /var/www/kimai/public
 kimai_dbhost: localhost
 kimai_dbport: 3306
 kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
-# If these variables are set then the admin user will be created on install
+# If these variables are set then the admin user will be created on install:
 # kimai_admin_user:
 # kimai_admin_email:
 # https://symfony.com/doc/current/reference/configuration/swiftmailer.html
@@ -26,4 +30,6 @@ kimai_email_password: ""
 kimai_email_encryption: ""
 kimai_email_auth_mode: ""
 kimai_email_command: /usr/sbin/sendmail -t -i
+# Set kimai_user_registration to true to allow anyone to create an account after the install:
+kimai_user_registration: false
 ...

@@ -1,0 +1,34 @@
+---
+- name: Update Kimai
+  block:
+
+    - name: "Kimai git repo updated to version {{ kimai_version }}"
+      git:
+        repo: https://github.com/kevinpapst/kimai2.git
+        dest: "{{ kimai_docroot | dirname }}"
+        version: "{{ kimai_version }}"
+        depth: 1
+        clone: true
+        update: true
+        force: false
+        verify_commit: true
+      become_user: "{{ kimai_user }}"
+
+    - name: Composer install
+      composer:
+        command: install
+        working_dir: "{{ kimai_docroot | dirname }}"
+        optimize_autoloader: true
+        no_dev: true
+      become_user: "{{ kimai_user }}"
+
+    - name: "Update Kimai from version {{ kimai_installed }} to version {{ kimai_version }}"
+      command: bin/console --no-ansi -n kimai:update
+      args:
+        chdir: "{{ kimai_docroot | dirname }}"
+      register: kimai_update
+      become_user: "{{ kimai_user }}"
+
+  tags:
+    - kimai
+...

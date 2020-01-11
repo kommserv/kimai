@@ -1,0 +1,25 @@
+---
+# {{ ansible_managed }]
+
+kimai:
+    defaults:
+        user:
+            timezone: {{ kimai_tz | default('Europe/London') }}
+            language: {{ kimai_locale | default('en') }}
+        customer:
+            timezone: {{ kimai_tz | default('Europe/London') }}
+            country: {{ kimai_country | default('GB') }}
+            currency: {{ kimai_currency | default('GBP') }}
+{% if kimai_user_registration == False %}
+    user:
+        registration: false
+{% endif %}
+
+{% if kimai_email_transport == "sendmail" %}
+swiftmailer:
+  transport: sendmail
+  command: {{ kimai_sendmail_command }}
+{% endif %}
+
+# vim: set ft=yaml
+...

@@ -27,11 +27,6 @@
   tags:
     - kimai
 
-- name: Check what the latest version of Kimai is
-  include_tasks: version.yml
-  tags:
-    - kimai
-
 - name: "Check if the Kimai {{ kimai_user }} user account exists"
   shell: "id {{ kimai_user }} && echo PRESENT || echo ABSENT"
   register: kimai_user_check
@@ -43,189 +38,21 @@
 - name: Only install or upgrade Kimai if the user account exists
   block:
 
-    - name: Private directory present
-      file:
-        path: "{{ kimai_private }}"
-        state: directory
-        owner: "{{ kimai_user }}"
-        group: "{{ kimai_group | default(kimai_user) }}"
-        mode: 0700
-
-    - name: GitHub GPG key present
-      copy:
-        src: files/github.asc
-        dest: "{{ kimai_private }}/github.asc"
-      become_user: "{{ kimai_user }}"
-
-    - name: GitHub GPG public key imported
-      command: "gpg --import {{ kimai_private }}/github.asc"
-      register: kimai_gpg_import
-      changed_when: '"not changed" not in kimai_gpg_import.stderr'
-      check_mode: false
-      become_user: "{{ kimai_user }}"
-
-    - name: Add Kimai console to PATH in ~/.bashrc
-      lineinfile:
-        path: "{{ kimai_home }}/.bashrc"
-        line: 'export PATH="{{ kimai_docroot | dirname }}/bin:${HOME}/bin:${PATH}"'
-        regexp: '^export PATH='
-        create: true
-
-    - name: Check if Kimai is installed and if it is which version is installed
-      shell: bin/console --no-ansi -n kimai:version || echo ABSENT
-      args:
-        chdir: "{{ kimai_docroot | dirname }}"
-      check_mode: false
-      changed_when: false
-      register: kimai_install_check
-      become_user: "{{ kimai_user }}"
-
-    - name: Set a variable for the installed version
-      set_fact:
-        kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-      when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
-
-    - name: Clone Kimai git repo
-      block:
-
-        - name: DocumentRoot public directory absent
-          file:
-            path: "{{ kimai_docroot }}"
-            state: absent
-
-        - name: Kimai git repo present
-          git:
-            repo: https://github.com/kevinpapst/kimai2.git
-            dest: "{{ kimai_docroot | dirname }}"
-            version: "{{ kimai_version }}"
-            depth: 1
-            clone: true
-            update: true
-            force: true
-            verify_commit: true
-          become_user: "{{ kimai_user }}"
-
-        - name: Composer install
-          composer:
-            command: install
-            working_dir: "{{ kimai_docroot | dirname }}"
-            optimize_autoloader: true
-            no_dev: true
-          become_user: "{{ kimai_user }}"
-
-      when: ( kimai_install_check is defined ) and ( "ABSENT" in kimai_install_check.stdout )
-      tags:
-        - kimai
-
-    - name: Kimai app secret present
-      shell: "pwgen -n 75 1 > {{ kimai_docroot | dirname }}/app_secret.txt"
-      args:
-        creates: "{{ kimai_docroot | dirname }}/app_secret.txt"
-      become_user: "{{ kimai_user }}"
-
-    - name: Slurp a base64 encoded version of the app secret
-      slurp:
-        src: "{{ kimai_docroot | dirname }}/app_secret.txt"
-      register: kimai_app_secret_b64encoded
-
-    - name: Decode and set a fact based on the app secret file contents
-      set_fact:
-        kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"
-
-    - name: .env present
-      template:
-        src: templates/env.j2
-        dest: "{{ kimai_docroot | dirname }}/.env"
-        owner: "{{ kimai_user }}"
-        group: "{{ kimai_group | default(kimai_user) }}"
-        mode: 0640
-
-    - name: Conditionally set the mail transport to sendmail
-      block:
-
-        - name: Mail transport set to sendmail
-          blockinfile:
-            path: "{{ kimai_docroot | dirname }}/config/packages/local.yaml"
-            block: |
-              swiftmailer:
-                transport: sendmail
-                command: {{ kimai_sendmail_command }}
-            create: true
-            owner: "{{ kimai_user }}"
-            group: "{{ kimai_group | default(kimai_user) }}"
-          register: kimai_email_transport_sendmail
-
-        - name: Cache flushed and then warmed if the transport has changed
-          command: "bin/console {{ cmd }}"
-          args:
-            chdir: "{{ kimai_docroot | dirname }}"
-          become_user: "{{ kimai_user }}"
-          loop:
-            - cache:clear --env=prod
-            - cache:warmup --env=prod
-          loop_control:
-            loop_var: cmd
-            label: "{{ cmd }}"
-          when: ( kimai_email_transport_sendmail is defined ) and ( kimai_email_transport_sendmail.changed )
-
-      when: ( kimai_email_transport is defined ) and ( kimai_email_transport == "sendmail" )
+    - name: Check what the installed version of Kimai is
+      include_tasks: latest.yml
 
     - name: Install Kimai
-      block:
+      include_tasks: install.yml
+      when: kimai_installed is not defined
 
-        - name: Install Kimai
-          command: bin/console --no-ansi -n kimai:install
-          args:
-            chdir: "{{ kimai_docroot | dirname }}"
-          register: kimai_install
-          become_user: "{{ kimai_user }}"
-
-        - name: Create the admin super user
-          block:
-
-            - name: "Random password for {{ kimai_admin_user }} generated"
-              command: pwgen -n 20 1
-              register: kimai_admin_pwgen
-
-            - name: Create admin user account
-              command: "bin/console --no-ansi -n kimai:create-user {{ kimai_admin_user | quote }} {{ kimai_admin_email | quote }} ROLE_SUPER_ADMIN {{ kimai_admin_pwgen.stdout | trim | quote }}"
-              args:
-                chdir: "{{ kimai_docroot | dirname }}"
-              register: kimai_create_user
-
-          when: ( kimai_admin_user is defined ) and ( kimai_admin_email is defined )
-          tags:
-            - kimai
-
-      when: ( kimai_install_check is defined ) and ( "ABSENT" in kimai_install_check.stdout )
-      tags:
-        - kimai
-
-    - name: "Update Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
-      block:
-
-        - name: "Kimai git repo updated to version {{ kimai_version }}"
-          git:
-            repo: https://github.com/kevinpapst/kimai2.git
-            dest: "{{ kimai_docroot | dirname }}"
-            version: "{{ kimai_version }}"
-            depth: 1
-            clone: true
-            update: true
-            force: false
-            verify_commit: true
-          become_user: "{{ kimai_user }}"
-
-        - name: "Update Kimai from version {{ kimai_installed }} to version {{ kimai_version }}"
-          command: bin/console --no-ansi -n kimai:update
-          args:
-            chdir: "{{ kimai_docroot | dirname }}"
-          register: kimai_update
-          become_user: "{{ kimai_user }}"
-
+    - name: "Upgrade Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
+      include_tasks: upgrade.yml 
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_version, '<') )
+
+    - name: Check what the latest version of Kimai is
+      include_tasks: latest.yml
 
     - name: A update is available
       debug:
