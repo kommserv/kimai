@@ -6,10 +6,15 @@ kimai:
         user:
             timezone: {{ kimai_tz | default('Europe/London') }}
             language: {{ kimai_locale | default('en') }}
+            currency: {{ kimai_currency | default('GBP') }}
         customer:
             timezone: {{ kimai_tz | default('Europe/London') }}
             country: {{ kimai_country | default('GB') }}
             currency: {{ kimai_currency | default('GBP') }}
+    calendar:
+        businessHours:
+            begin: '09:00'
+            end: '17:00'
 {% if kimai_user_registration == False %}
     user:
         registration: false
