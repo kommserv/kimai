@@ -21,6 +21,10 @@ kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
 # If these variables are set then the admin user will be created on install:
 # kimai_admin_user:
 # kimai_admin_email:
+# Send the admin password by email to the admin:
+# kimai_notify: true
+# Email settings
+# https://www.kimai.org/documentation/emails.html
 # https://symfony.com/doc/current/reference/configuration/swiftmailer.html
 kimai_email_transport: smtp
 kimai_email_host: localhost
