@@ -45,7 +45,7 @@
   block:
 
     - name: Check what the installed version of Kimai is
-      include_tasks: latest.yml
+      include_tasks: version.yml
 
     - name: Install Kimai
       include_tasks: install.yml
