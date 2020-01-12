@@ -23,6 +23,15 @@ kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
 # kimai_admin_email:
 # Send the admin password by email to the admin:
 # kimai_notify: true
+kimai_notify_from: "Webarchitects <root@{{ inventory_hostname }}>"
+kimai_notify_reply_to: "Webarchitects <support@webarchitects.coop>"
+kimai_notify_headers:
+  - Reply-To = Webarchitects <root@{{ inventory_hostname }}>
+  - X-Auto-Response-Suppress = All
+kimai_notify_subject_tag: webarchitects
+kimai_notify_signature: |
+  Webarch Co-operative Limited
+  https://www.webarch.coop/
 # Email settings
 # https://www.kimai.org/documentation/emails.html
 # https://symfony.com/doc/current/reference/configuration/swiftmailer.html
