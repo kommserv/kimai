@@ -13,10 +13,13 @@
 - name: Check that all the variables needed are defined
   assert:
     that:
-      - kimai_user is defined
-      - kimai_home is defined
-      - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
+      - kimai_version is defined
       - kimai_app_env is defined
+      - kimai_user is defined
+      - kimai_group is defined
+      - kimai_home is defined
+      - kimai_private is defined
+      - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
       - kimai_dbuser is defined
       - kimai_dbpass is defined
       - kimai_dbhost is defined
