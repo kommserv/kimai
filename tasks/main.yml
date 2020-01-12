@@ -46,7 +46,7 @@
       when: kimai_installed is not defined
 
     - name: "Upgrade Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
-      include_tasks: upgrade.yml 
+      include_tasks: upgrade.yml
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_version, '<') )
