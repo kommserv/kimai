@@ -119,9 +119,9 @@
             secure: never
           when: ( kimai_notify is not defined ) or ( kimai_notify == True )
 
-       when: ( kimai_admin_user is defined ) and ( kimai_admin_email is defined )
-       tags:
-         - kimai
+      when: ( kimai_admin_user is defined ) and ( kimai_admin_email is defined )
+      tags:
+        - kimai
 
     - name: Update the kimai_installed variable
       include_tasks: version.yml
