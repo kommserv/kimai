@@ -5,7 +5,7 @@ kimai_app_env: prod
 kimai_user: www-data
 kimai_group: www-data
 kimai_home: /var/www
-kimai_private: "{{ kimai_home }}/private"
+kimai_private: "{{ kimai_home }}/kimai/private"
 kimai_docroot: "{{ kimai_home }}/kimai/public"
 kimai_tz: Europe/London
 kimai_locale: en
