@@ -123,8 +123,8 @@
        tags:
          - kimai
 
-     - name: Update the kimai_installed variable
-       include_tasks: version.yml
+    - name: Update the kimai_installed variable
+      include_tasks: version.yml
 
   tags:
     - kimai
