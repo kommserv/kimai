@@ -9,7 +9,7 @@
   tags:
     - kimai
 
-# Additional checks on the following variables could be added
+# TODO Additional checks on the following variables could be added
 - name: Check that all the variables needed are defined
   assert:
     that:
@@ -27,6 +27,9 @@
       - kimai_dbname is defined
       - kimai_notify_from is defined
       - ( kimai_email_transport is defined ) and ( kimai_email_transport is regex("^smtp|sendmail|gmail|$") )
+      - kimai_email_host is defined
+      - kimai_email_port is defined
+      - kimai_user_registration is defined
   tags:
     - kimai
 
