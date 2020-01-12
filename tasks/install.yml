@@ -114,7 +114,7 @@
           mail:
             from: "{{ kimai_notify_from | default('Webarchitects') }} <root@{{ inventory_hostname }}>"
             to: "{{ kimai_admin_email }}"
-            subject: "[{{ kimai_notify_subject_tag | default('webarchitects') }}] WordPress admin login for {{ kimai_url }}"
+            subject: "[{{ kimai_notify_subject_tag | default('webarchitects') }}] Kimai admin login for {{ kimai_url }}"
             headers: "{{ kimai_notify_headers }}"
             charset: us-ascii
             body: "{{ lookup('template', 'templates/install_email.j2') }}"
