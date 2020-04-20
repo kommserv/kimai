@@ -1,6 +1,6 @@
 ---
 # https://github.com/kevinpapst/kimai2/releases
-kimai_version: 1.7
+kimai_version: 1.8
 kimai_app_env: prod
 kimai_user: www-data
 kimai_group: www-data
