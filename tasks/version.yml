@@ -3,7 +3,7 @@
   block:
 
     - name: Check if Kimai is installed and if it is which version is installed
-      command: bin/console --no-ansi -n kimai:version
+      command: bin/console --no-ansi -n kimai:version --short
       args:
         chdir: "{{ kimai_docroot | dirname }}"
       check_mode: false
@@ -13,29 +13,9 @@
       become: true
       become_user: "{{ kimai_user }}"
 
-    - name: Set a variable for the version of Kimai
-      block:
-
-        - name: Debug Kimai version check
-          debug:
-            var: kimai_install_check.stdout
-            verbosity: 2
-
-        - name: Set a variable for the installed version when the output starts with Kimai 2 -
-          set_fact:
-            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-          when: ( kimai_install_check.stdout is regex('^Kimai 2 -') )
-
-        - name: Set a variable for the installed version when the output starts with Kimai -
-          set_fact:
-            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[2] }}"
-          when: ( kimai_install_check.stdout is regex('^Kimai -') )
-
-        - name: Set a variable for the installed version when the output starts with Kimai 1
-          set_fact:
-            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[1] }}"
-          when: ( kimai_install_check.stdout is regex('^Kimai 1') )
-
+    - name: Set a variable for the installed version of Kimai
+      set_fact:
+        kimai_installed: "{{ kimai_install_check.stdout | trim }}"
       when: ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
 
   tags:
