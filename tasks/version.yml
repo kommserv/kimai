@@ -13,10 +13,23 @@
       become: true
       become_user: "{{ kimai_user }}"
 
-    - name: Set a variable for the installed version
-      set_fact:
-        kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-      when: ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
+    - name: Set a variable for the version of Kimai
+      block:
+
+        # This check is used for versions < 1.14
+        - name: Set a variable for the installed version
+          set_fact:
+            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
+          when: ( kimai_install_check.stdout is regex('^Kimai 2 -') )
+
+        # This check is used for versions >= 1.14
+        - name: Set a variable for the installed version
+          set_fact:
+            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[2] }}"
+          when: ( kimai_install_check.stdout is regex('^Kimai -') )
+
+      when:
+       - ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
 
   tags:
     - kimai
