@@ -32,6 +32,9 @@
       become: true
       become_user: "{{ kimai_user }}"
 
+    - name: Check what the installed version of Kimai is
+      include_tasks: version.yml
+
   tags:
     - kimai
 ...
