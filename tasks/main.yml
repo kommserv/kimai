@@ -1,48 +1,46 @@
 ---
-- name: Required packages present
-  apt:
-    pkg:
-      - git
-      - gnupg
-      - pwgen
-    state: present
-  tags:
-    - kimai
-
-# TODO Additional checks on the following variables could be added
-- name: Check that all the variables needed are defined
-  assert:
-    that:
-      - kimai_version is defined
-      - kimai_app_env is defined
-      - kimai_user is defined
-      - kimai_group is defined
-      - kimai_home is defined
-      - kimai_private is defined
-      - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
-      - kimai_dbuser is defined
-      - kimai_dbpass is defined
-      - kimai_dbhost is defined
-      - kimai_dbport is defined
-      - kimai_dbname is defined
-      - kimai_notify_from is defined
-      - ( kimai_email_transport is defined ) and ( kimai_email_transport is regex("^smtp|sendmail|gmail|$") )
-      - kimai_email_host is defined
-      - kimai_email_port is defined
-      - kimai_user_registration is defined
-  tags:
-    - kimai
-
-- name: "Check if the Kimai {{ kimai_user }} user account exists"
-  shell: "id {{ kimai_user }} && echo PRESENT || echo ABSENT"
-  register: kimai_user_check
-  check_mode: false
-  changed_when: '"no such user" in kimai_user_check.stderr'
-  tags:
-    - kimai
-
-- name: Only install or upgrade Kimai if the user account exists
+- name: Install and / or upgrade Kimai
   block:
+
+    - name: Required packages present
+      apt:
+        pkg:
+          - git
+          - gnupg
+          - pwgen
+        state: present
+
+    # TODO Additional checks on the following variables could be added
+    - name: Check that all the variables needed are defined
+      assert:
+        that:
+          - kimai_version is defined
+          - kimai_app_env is defined
+          - kimai_user is defined
+          - kimai_group is defined
+          - kimai_home is defined
+          - kimai_private is defined
+          - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
+          - kimai_dbuser is defined
+          - kimai_dbpass is defined
+          - kimai_dbhost is defined
+          - kimai_dbport is defined
+          - kimai_dbname is defined
+          - kimai_notify_from is defined
+          - ( kimai_email_transport is defined ) and ( kimai_email_transport is regex("^smtp|sendmail|gmail|$") )
+          - kimai_email_host is defined
+          - kimai_email_port is defined
+          - kimai_user_registration is defined
+
+    - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
+      getent:
+        database: passwd
+        split: ':'
+
+    - name: "Fail if the {{ kimai_user }} user account doesn't exist"
+      fail:
+        msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
+      when: kimai_user not in getent_passwd
 
     - name: Check what the installed version of Kimai is
       include_tasks: version.yml
@@ -67,7 +65,6 @@
         - ( kimai_latest is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_latest, '<') )
 
-  when: ( kimai_user_check is defined ) and ( "no such user" not in kimai_user_check.stderr )
   tags:
     - kimai
 ...

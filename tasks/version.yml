@@ -3,19 +3,20 @@
   block:
 
     - name: Check if Kimai is installed and if it is which version is installed
-      shell: bin/console --no-ansi -n kimai:version || echo ABSENT
+      command: bin/console --no-ansi -n kimai:version
       args:
         chdir: "{{ kimai_docroot | dirname }}"
       check_mode: false
       changed_when: false
       register: kimai_install_check
+      failed_when: kimai_install_check.rc is not regex('^0$|^1$|^127$')
       become: true
       become_user: "{{ kimai_user }}"
 
     - name: Set a variable for the installed version
       set_fact:
         kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
-      when: ( kimai_install_check is defined ) and ( "ABSENT" not in kimai_install_check.stdout )
+      when: ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
 
   tags:
     - kimai
