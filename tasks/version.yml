@@ -21,15 +21,20 @@
             var: kimai_install_check.stdout
             verbosity: 2
 
-        - name: Set a variable for the installed version when the output starts with Kimai 2
+        - name: Set a variable for the installed version when the output starts with Kimai 2 -
           set_fact:
             kimai_installed: "{{ kimai_install_check.stdout.split(' ')[3] }}"
           when: ( kimai_install_check.stdout is regex('^Kimai 2 -') )
 
-        - name: Set a variable for the installed version when the output starts with Kimai
+        - name: Set a variable for the installed version when the output starts with Kimai -
           set_fact:
             kimai_installed: "{{ kimai_install_check.stdout.split(' ')[2] }}"
           when: ( kimai_install_check.stdout is regex('^Kimai -') )
+
+        - name: Set a variable for the installed version when the output starts with Kimai 1
+          set_fact:
+            kimai_installed: "{{ kimai_install_check.stdout.split(' ')[1] }}"
+          when: ( kimai_install_check.stdout is regex('^Kimai 1') )
 
       when: ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
 
