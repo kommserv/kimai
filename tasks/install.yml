@@ -14,6 +14,7 @@
       copy:
         src: files/github.asc
         dest: "{{ kimai_private }}/github.asc"
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: GitHub GPG public key imported
@@ -21,6 +22,7 @@
       register: kimai_gpg_import
       changed_when: '"not changed" not in kimai_gpg_import.stderr'
       check_mode: false
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Add Kimai console to PATH in ~/.bashrc
@@ -45,6 +47,7 @@
         update: true
         force: true
         verify_commit: true
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Composer install
@@ -53,12 +56,14 @@
         working_dir: "{{ kimai_docroot | dirname }}"
         optimize_autoloader: true
         no_dev: true
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Kimai app secret present
       shell: "pwgen -n 75 1 > {{ kimai_docroot | dirname }}/app_secret.txt"
       args:
         creates: "{{ kimai_docroot | dirname }}/app_secret.txt"
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Slurp a base64 encoded version of the app secret
@@ -91,6 +96,7 @@
       args:
         chdir: "{{ kimai_docroot | dirname }}"
       register: kimai_install
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Create the admin super user
@@ -121,7 +127,7 @@
             host: localhost
             port: 25
             secure: never
-          when: ( kimai_notify is not defined ) or ( kimai_notify == True )
+          when: ( kimai_notify is not defined ) or ( kimai_notify )
 
       when: ( kimai_admin_user is defined ) and ( kimai_admin_email is defined )
       tags:

@@ -9,6 +9,7 @@
       check_mode: false
       changed_when: false
       register: kimai_install_check
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Set a variable for the installed version

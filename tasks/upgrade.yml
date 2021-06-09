@@ -12,6 +12,7 @@
         update: true
         force: false
         verify_commit: true
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: Composer install
@@ -20,6 +21,7 @@
         working_dir: "{{ kimai_docroot | dirname }}"
         optimize_autoloader: true
         no_dev: true
+      become: true
       become_user: "{{ kimai_user }}"
 
     - name: "Update Kimai from version {{ kimai_installed }} to version {{ kimai_version }}"
@@ -27,6 +29,7 @@
       args:
         chdir: "{{ kimai_docroot | dirname }}"
       register: kimai_update
+      become: true
       become_user: "{{ kimai_user }}"
 
   tags:
