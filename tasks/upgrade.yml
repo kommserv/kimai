@@ -31,16 +31,6 @@
       become: true
       become_user: "{{ kimai_user }}"
 
-    - name: Clear and warm up the cache
-      command: "bin/console --no-ansi -n {{ cmd }}"
-      args:
-        chdir: "{{ kimai_docroot | dirname }}"
-      loop:
-        - cache:clear --env=prod
-        - cache:warmup --env=prod
-      become: true
-      become_user: "{{ kimai_user }}"
-
     - name: Check the installed version of Kimai
       include_tasks: version.yml
 
