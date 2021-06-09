@@ -13,7 +13,6 @@
       become: true
       become_user: "{{ kimai_user }}"
 
-
     - name: Set a variable for the version of Kimai
       block:
 
