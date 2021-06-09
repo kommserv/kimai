@@ -42,20 +42,20 @@
         msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
       when: kimai_user not in getent_passwd
 
-    - name: Check what the installed version of Kimai is
+    - name: Check the installed version of Kimai
       include_tasks: version.yml
 
     - name: Install Kimai
       include_tasks: install.yml
       when: kimai_installed is not defined
 
-    - name: "Upgrade Kimai when {{ kimai_version }} is less than {{ kimai_installed }}"
+    - name: "Upgrade Kimai when {{ kimai_installed }} is less than {{ kimai_version }}"
       include_tasks: upgrade.yml
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_version, '<') )
 
-    - name: Check what the latest version of Kimai is
+    - name: Check the latest version of Kimai
       include_tasks: latest.yml
 
     - name: A update is available
