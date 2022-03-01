@@ -1,17 +1,41 @@
-This Ansible galaxy role can be used to install and upgrade
-[Kimai](https://www.kimai.org/), see the [defaults/main.yml](defaults/main.yml)
-file for the required variables.
+# Kimai
 
-This role doesn't install or configure a webserver or database server but it
-assumes MySQL / MariaDB will be used.
+This Ansible role has been tested to install
+[Kimai](https://www.kimai.org/) on an LXC container behind
+an Apache reverse proxy.
 
-If you use this role please specify which [released
-version](https://git.coop/webarch/kimai/-/releases) to download in your
-`requirements.yml` file, see the [releases listed at
-GitHub](https://github.com/kevinpapst/kimai2/releases).
+This role was adapted from [Webarchitects Co-operative's Ansible role](https://git.coop/webarch/kimai/)
+of the same name. 
 
-Note that [version 1.7
-upwards](https://github.com/kevinpapst/kimai2/blob/master/UPGRADING.md)
-requires the `mysql` database to contain timzone data, this can be [imported
-when changed using
-Ansible](https://git.coop/webarch/mariadb/blob/master/tasks/tz.yml).
+
+## Apache vhost on the reverse proxy
+
+```
+<VirtualHost *:80>
+   ServerAdmin {{ vhost_email }}
+   ServerName {{ vhost_domain }}
+
+   Redirect permanent / https://{{ vhost_domain }}/
+
+   ErrorLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_error.log
+   CustomLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_access.log combined
+</VirtualHost>
+
+<VirtualHost *:443>
+   ServerAdmin {{ vhost_email }}
+   ServerName {{ vhost_domain }}
+
+   ProxyPreserveHost On
+   RequestHeader add X-Forwarded-Proto https
+   ProxyPass / http://{{ vhost_ip }}:80/
+   ProxyPassReverse / http://{{ vhost_ip }}:80/
+
+   SSLEngine on
+   SSLCertificateKeyFile   /etc/letsencrypt/live/{{ vhost_domain }}/privkey.pem
+   SSLCertificateFile      /etc/letsencrypt/live/{{ vhost_domain }}/cert.pem
+   SSLCertificateChainFile /etc/letsencrypt/live/{{ vhost_domain }}/chain.pem
+	
+   ErrorLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_error.log
+   CustomLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_access.log combined
+</VirtualHost>
+```

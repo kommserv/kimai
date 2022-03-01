@@ -2,140 +2,488 @@
 - name: Install Kimai
   block:
 
-    - name: Private directory present
-      file:
-        path: "{{ kimai_private }}"
-        state: directory
-        owner: "{{ kimai_user }}"
-        group: "{{ kimai_group | default(kimai_user) }}"
-        mode: 0700
+    # - name: "Make sure {{ kimai_wwwroot }} directory exists"
+    #   ansible.builtin.file:
+    #     path: "{{ kimai_wwwroot }}"
+    #     state: directory
+    #     owner: "{{ kimai_user }}"
+    #     group: "{{ kimai_group | default(kimai_user) }}"
+    #     mode: 0700
 
-    - name: GitHub GPG key present
-      copy:
-        src: files/github.asc
-        dest: "{{ kimai_private }}/github.asc"
-      become: true
-      become_user: "{{ kimai_user }}"
+    # - name: GitHub GPG key present
+    #   copy:
+    #     src: files/github.asc
+    #     dest: "{{ kimai_wwwroot }}/github.asc"
+    #   become: true
+    #   become_user: "{{ kimai_user }}"
 
-    - name: GitHub GPG public key imported
-      command: "gpg --import {{ kimai_private }}/github.asc"
-      register: kimai_gpg_import
-      changed_when: '"not changed" not in kimai_gpg_import.stderr'
-      check_mode: false
-      become: true
-      become_user: "{{ kimai_user }}"
+    # - name: GitHub GPG public key imported
+    #   command: "gpg --import {{ kimai_wwwroot }}/github.asc"
+    #   register: kimai_gpg_import
+    #   changed_when: '"not changed" not in kimai_gpg_import.stderr'
+    #   check_mode: false
+    #   become: true
+    #   become_user: "{{ kimai_user }}"
 
-    - name: Add Kimai console to PATH in ~/.bashrc
-      lineinfile:
-        path: "{{ kimai_home }}/.bashrc"
-        line: 'export PATH="{{ kimai_docroot | dirname }}/bin:${HOME}/bin:${PATH}"'
-        regexp: '^export PATH='
-        create: true
+    # - name: Add Kimai console to PATH in ~/.bashrc
+    #   lineinfile:
+    #     path: "{{ kimai_home }}/.bashrc"
+    #     line: 'export PATH="{{ kimai_wwwroot }}/bin:${HOME}/bin:${PATH}"'
+    #     regexp: '^export PATH='
+    #     create: true
 
-    - name: DocumentRoot public directory absent
-      file:
-        path: "{{ kimai_docroot }}"
+    - name: Wipe local Kimai repo
+      ansible.builtin.file:
+        path: "{{ kimai_repo }}"
         state: absent
 
-    - name: Kimai git repo present
-      git:
+    - name: Clone Kimai git repo
+      ansible.builtin.git:
         repo: https://github.com/kevinpapst/kimai2.git
-        dest: "{{ kimai_docroot | dirname }}"
+        dest: "{{ kimai_repo }}"
         version: "{{ kimai_version }}"
         depth: 1
         clone: true
         update: true
         force: true
-        verify_commit: true
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
 
-    - name: Composer install
-      composer:
+    # https://docs.ansible.com/ansible/latest/collections/community/general/composer_module.html
+    # Default options that are always appended in each execution are 
+    # –no-ansi, –no-interaction and –no-progress if available.
+    - name: composer install
+      community.general.composer:
         command: install
-        working_dir: "{{ kimai_docroot | dirname }}"
+        working_dir: "{{ kimai_repo }}"
         optimize_autoloader: true
         no_dev: true
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
+      # composer/package-versions-deprecated: Generating version class...
+      # composer/package-versions-deprecated: ...done generating version class
+      # Installing dependencies from lock file
+      # Verifying lock file contents can be installed on current platform.
+      # Package operations: 145 installs, 0 updates, 0 removals
+      #   - Downloading composer/package-versions-deprecated (1.11.99.5)
+      #   - Downloading symfony/flex (v1.18.1)
+      #   - Downloading symfony/polyfill-php80 (v1.24.0)
+      #   - Downloading symfony/deprecation-contracts (v2.5.0)
+      #   - Downloading psr/container (1.1.1)
+      #   - Downloading symfony/service-contracts (v2.5.0)
+      #   - Downloading symfony/polyfill-php73 (v1.24.0)
+      #   - Downloading symfony/console (v4.4.36)
+      #   - Downloading psr/cache (1.0.1)
+      #   - Downloading symfony/polyfill-ctype (v1.24.0)
+      #   - Downloading doctrine/event-manager (1.1.1)
+      #   - Downloading doctrine/deprecations (v0.5.3)
+      #   - Downloading doctrine/collections (1.6.8)
+      #   - Downloading doctrine/cache (2.1.1)
+      #   - Downloading doctrine/persistence (2.3.0)
+      #   - Downloading doctrine/lexer (1.2.2)
+      #   - Downloading doctrine/instantiator (1.4.0)
+      #   - Downloading doctrine/inflector (2.0.4)
+      #   - Downloading doctrine/dbal (2.13.7)
+      #   - Downloading doctrine/common (3.2.1)
+      #   - Downloading doctrine/orm (2.11.0)
+      #   - Downloading beberlei/doctrineextensions (v1.3.0)
+      #   - Downloading symfony/routing (v4.4.34)
+      #   - Downloading symfony/polyfill-intl-normalizer (v1.24.0)
+      #   - Downloading symfony/polyfill-intl-idn (v1.24.0)
+      #   - Downloading symfony/mime (v4.4.36)
+      #   - Downloading symfony/http-foundation (v4.4.36)
+      #   - Downloading symfony/http-client-contracts (v2.5.0)
+      #   - Downloading symfony/event-dispatcher-contracts (v1.1.11)
+      #   - Downloading symfony/event-dispatcher (v4.4.34)
+      #   - Downloading symfony/var-dumper (v4.4.36)
+      #   - Downloading psr/log (1.1.4)
+      #   - Downloading symfony/debug (v4.4.36)
+      #   - Downloading symfony/error-handler (v4.4.36)
+      #   - Downloading symfony/http-kernel (v4.4.36)
+      #   - Downloading symfony/finder (v4.4.36)
+      #   - Downloading symfony/filesystem (v4.4.27)
+      #   - Downloading symfony/dependency-injection (v4.4.36)
+      #   - Downloading symfony/polyfill-php81 (v1.24.0)
+      #   - Downloading symfony/config (v4.4.36)
+      #   - Downloading symfony/var-exporter (v4.4.34)
+      #   - Downloading symfony/cache-contracts (v2.5.0)
+      #   - Downloading symfony/cache (v4.4.36)
+      #   - Downloading symfony/framework-bundle (v4.4.36)
+      #   - Downloading symfony/stopwatch (v4.4.27)
+      #   - Downloading laminas/laminas-zendframework-bridge (1.4.1)
+      #   - Downloading laminas/laminas-eventmanager (3.4.0)
+      #   - Downloading laminas/laminas-code (3.4.1)
+      #   - Downloading friendsofphp/proxy-manager-lts (v1.0.5)
+      #   - Downloading doctrine/migrations (3.4.0)
+      #   - Downloading symfony/doctrine-bridge (v4.4.36)
+      #   - Downloading doctrine/sql-formatter (1.1.2)
+      #   - Downloading doctrine/annotations (1.13.2)
+      #   - Downloading doctrine/doctrine-bundle (2.5.5)
+      #   - Downloading doctrine/doctrine-migrations-bundle (3.2.1)
+      #   - Downloading egulias/email-validator (3.1.2)
+      #   - Downloading erusev/parsedown (1.7.4)
+      #   - Downloading willdurand/negotiation (3.0.0)
+      #   - Downloading willdurand/jsonp-callback-validator (v1.1.0)
+      #   - Downloading symfony/security-core (v4.4.36)
+      #   - Downloading friendsofsymfony/rest-bundle (3.2.1)
+      #   - Downloading behat/transliterator (v1.3.0)
+      #   - Downloading gedmo/doctrine-extensions (v3.5.0)
+      #   - Downloading handcraftedinthealps/rest-routing-bundle (1.0.5)
+      #   - Downloading phpstan/phpdoc-parser (1.2.0)
+      #   - Downloading jms/metadata (2.6.1)
+      #   - Downloading jms/serializer (3.17.1)
+      #   - Downloading jms/serializer-bundle (3.10.0)
+      #   - Downloading twig/twig (v3.3.7)
+      #   - Downloading symfony/translation-contracts (v2.5.0)
+      #   - Downloading symfony/twig-bridge (v4.4.36)
+      #   - Downloading symfony/translation (v4.4.34)
+      #   - Downloading symfony/options-resolver (v4.4.30)
+      #   - Downloading symfony/asset (v4.4.27)
+      #   - Downloading kevinpapst/adminlte-bundle (3.6.1)
+      #   - Downloading league/csv (9.7.4)
+      #   - Downloading league/html-to-markdown (5.0.2)
+      #   - Downloading setasign/fpdi (v2.3.6)
+      #   - Downloading paragonie/random_compat (v9.99.100)
+      #   - Downloading myclabs/deep-copy (1.10.2)
+      #   - Downloading mpdf/mpdf (v8.0.17)
+      #   - Downloading myclabs/php-enum (1.8.3)
+      #   - Downloading zircote/swagger-php (2.1.0)
+      #   - Downloading symfony/inflector (v4.4.34)
+      #   - Downloading symfony/property-info (v4.4.31)
+      #   - Downloading webmozart/assert (1.10.0)
+      #   - Downloading phpdocumentor/reflection-common (2.2.0)
+      #   - Downloading phpdocumentor/type-resolver (1.6.0)
+      #   - Downloading phpdocumentor/reflection-docblock (5.3.0)
+      #   - Downloading exsyst/swagger (v0.4.2)
+      #   - Downloading nelmio/api-doc-bundle (v3.10.1)
+      #   - Downloading nelmio/cors-bundle (2.2.0)
+      #   - Downloading robrichards/xmlseclibs (3.1.1)
+      #   - Downloading onelogin/php-saml (3.6.1)
+      #   - Downloading pagerfanta/pagerfanta (v2.7.2)
+      #   - Downloading psr/simple-cache (1.0.1)
+      #   - Downloading psr/http-message (1.0.1)
+      #   - Downloading psr/http-factory (1.0.1)
+      #   - Downloading psr/http-client (1.0.1)
+      #   - Downloading markbaker/matrix (3.0.0)
+      #   - Downloading markbaker/complex (3.0.1)
+      #   - Downloading maennchen/zipstream-php (2.1.0)
+      #   - Downloading ezyang/htmlpurifier (v4.14.0)
+      #   - Downloading phpoffice/phpspreadsheet (1.21.0)
+      #   - Downloading laminas/laminas-escaper (2.9.0)
+      #   - Downloading phpoffice/phpword (0.18.2)
+      #   - Downloading sensio/framework-extra-bundle (v6.2.6)
+      #   - Downloading symfony/mailer (v4.4.36)
+      #   - Downloading symfony/amazon-mailer (v4.4.27)
+      #   - Downloading symfony/css-selector (v4.4.27)
+      #   - Downloading symfony/dotenv (v4.4.36)
+      #   - Downloading symfony/expression-language (v4.4.34)
+      #   - Downloading symfony/property-access (v4.4.36)
+      #   - Downloading symfony/polyfill-intl-icu (v1.24.0)
+      #   - Downloading symfony/intl (v4.4.36)
+      #   - Downloading symfony/form (v4.4.36)
+      #   - Downloading symfony/google-mailer (v4.4.34)
+      #   - Downloading symfony/http-client (v4.4.36)
+      #   - Downloading symfony/mailchimp-mailer (v4.4.27)
+      #   - Downloading symfony/mailgun-mailer (v4.4.27)
+      #   - Downloading monolog/monolog (1.26.1)
+      #   - Downloading symfony/monolog-bridge (v4.4.27)
+      #   - Downloading symfony/monolog-bundle (v3.7.1)
+      #   - Downloading symfony/polyfill-intl-grapheme (v1.24.0)
+      #   - Downloading symfony/postmark-mailer (v4.4.27)
+      #   - Downloading symfony/security-http (v4.4.36)
+      #   - Downloading symfony/security-guard (v4.4.27)
+      #   - Downloading symfony/security-csrf (v4.4.27)
+      #   - Downloading symfony/security-bundle (v4.4.36)
+      #   - Downloading symfony/sendgrid-mailer (v4.4.30)
+      #   - Downloading symfony/serializer (v4.4.36)
+      #   - Downloading symfony/polyfill-uuid (v1.24.0)
+      #   - Downloading symfony/uid (v5.4.2)
+      #   - Downloading symfony/validator (v4.4.36)
+      #   - Downloading symfony/webpack-encore-bundle (v1.13.2)
+      #   - Downloading symfony/yaml (v4.4.36)
+      #   - Downloading tijsverkoyen/css-to-inline-styles (2.2.4)
+      #   - Downloading twig/cssinliner-extra (v3.3.5)
+      #   - Downloading symfony/twig-bundle (v4.4.36)
+      #   - Downloading twig/extra-bundle (v3.3.7)
+      #   - Downloading lorenzo/pinky (1.0.5)
+      #   - Downloading twig/inky-extra (v3.3.5)
+      #   - Downloading twig/intl-extra (v3.3.5)
+      #   - Downloading symfony/string (v5.4.2)
+      #   - Downloading twig/string-extra (v3.3.5)
+      #   - Installing composer/package-versions-deprecated (1.11.99.5): Extracting archive
+      #   - Installing symfony/flex (v1.18.1): Extracting archive
+      #   - Installing symfony/polyfill-php80 (v1.24.0): Extracting archive
+      #   - Installing symfony/deprecation-contracts (v2.5.0): Extracting archive
+      #   - Installing psr/container (1.1.1): Extracting archive
+      #   - Installing symfony/service-contracts (v2.5.0): Extracting archive
+      #   - Installing symfony/polyfill-php73 (v1.24.0): Extracting archive
+      #   - Installing symfony/console (v4.4.36): Extracting archive
+      #   - Installing psr/cache (1.0.1): Extracting archive
+      #   - Installing symfony/polyfill-ctype (v1.24.0): Extracting archive
+      #   - Installing doctrine/event-manager (1.1.1): Extracting archive
+      #   - Installing doctrine/deprecations (v0.5.3): Extracting archive
+      #   - Installing doctrine/collections (1.6.8): Extracting archive
+      #   - Installing doctrine/cache (2.1.1): Extracting archive
+      #   - Installing doctrine/persistence (2.3.0): Extracting archive
+      #   - Installing doctrine/lexer (1.2.2): Extracting archive
+      #   - Installing doctrine/instantiator (1.4.0): Extracting archive
+      #   - Installing doctrine/inflector (2.0.4): Extracting archive
+      #   - Installing doctrine/dbal (2.13.7): Extracting archive
+      #   - Installing doctrine/common (3.2.1): Extracting archive
+      #   - Installing doctrine/orm (2.11.0): Extracting archive
+      #   - Installing beberlei/doctrineextensions (v1.3.0): Extracting archive
+      #   - Installing symfony/routing (v4.4.34): Extracting archive
+      #   - Installing symfony/polyfill-intl-normalizer (v1.24.0): Extracting archive
+      #   - Installing symfony/polyfill-intl-idn (v1.24.0): Extracting archive
+      #   - Installing symfony/mime (v4.4.36): Extracting archive
+      #   - Installing symfony/http-foundation (v4.4.36): Extracting archive
+      #   - Installing symfony/http-client-contracts (v2.5.0): Extracting archive
+      #   - Installing symfony/event-dispatcher-contracts (v1.1.11): Extracting archive
+      #   - Installing symfony/event-dispatcher (v4.4.34): Extracting archive
+      #   - Installing symfony/var-dumper (v4.4.36): Extracting archive
+      #   - Installing psr/log (1.1.4): Extracting archive
+      #   - Installing symfony/debug (v4.4.36): Extracting archive
+      #   - Installing symfony/error-handler (v4.4.36): Extracting archive
+      #   - Installing symfony/http-kernel (v4.4.36): Extracting archive
+      #   - Installing symfony/finder (v4.4.36): Extracting archive
+      #   - Installing symfony/filesystem (v4.4.27): Extracting archive
+      #   - Installing symfony/dependency-injection (v4.4.36): Extracting archive
+      #   - Installing symfony/polyfill-php81 (v1.24.0): Extracting archive
+      #   - Installing symfony/config (v4.4.36): Extracting archive
+      #   - Installing symfony/var-exporter (v4.4.34): Extracting archive
+      #   - Installing symfony/cache-contracts (v2.5.0): Extracting archive
+      #   - Installing symfony/cache (v4.4.36): Extracting archive
+      #   - Installing symfony/framework-bundle (v4.4.36): Extracting archive
+      #   - Installing symfony/stopwatch (v4.4.27): Extracting archive
+      #   - Installing laminas/laminas-zendframework-bridge (1.4.1): Extracting archive
+      #   - Installing laminas/laminas-eventmanager (3.4.0): Extracting archive
+      #   - Installing laminas/laminas-code (3.4.1): Extracting archive
+      #   - Installing friendsofphp/proxy-manager-lts (v1.0.5): Extracting archive
+      #   - Installing doctrine/migrations (3.4.0): Extracting archive
+      #   - Installing symfony/doctrine-bridge (v4.4.36): Extracting archive
+      #   - Installing doctrine/sql-formatter (1.1.2): Extracting archive
+      #   - Installing doctrine/annotations (1.13.2): Extracting archive
+      #   - Installing doctrine/doctrine-bundle (2.5.5): Extracting archive
+      #   - Installing doctrine/doctrine-migrations-bundle (3.2.1): Extracting archive
+      #   - Installing egulias/email-validator (3.1.2): Extracting archive
+      #   - Installing erusev/parsedown (1.7.4): Extracting archive
+      #   - Installing willdurand/negotiation (3.0.0): Extracting archive
+      #   - Installing willdurand/jsonp-callback-validator (v1.1.0): Extracting archive
+      #   - Installing symfony/security-core (v4.4.36): Extracting archive
+      #   - Installing friendsofsymfony/rest-bundle (3.2.1): Extracting archive
+      #   - Installing behat/transliterator (v1.3.0): Extracting archive
+      #   - Installing gedmo/doctrine-extensions (v3.5.0): Extracting archive
+      #   - Installing handcraftedinthealps/rest-routing-bundle (1.0.5): Extracting archive
+      #   - Installing phpstan/phpdoc-parser (1.2.0): Extracting archive
+      #   - Installing jms/metadata (2.6.1): Extracting archive
+      #   - Installing jms/serializer (3.17.1): Extracting archive
+      #   - Installing jms/serializer-bundle (3.10.0): Extracting archive
+      #   - Installing twig/twig (v3.3.7): Extracting archive
+      #   - Installing symfony/translation-contracts (v2.5.0): Extracting archive
+      #   - Installing symfony/twig-bridge (v4.4.36): Extracting archive
+      #   - Installing symfony/translation (v4.4.34): Extracting archive
+      #   - Installing symfony/options-resolver (v4.4.30): Extracting archive
+      #   - Installing symfony/asset (v4.4.27): Extracting archive
+      #   - Installing kevinpapst/adminlte-bundle (3.6.1): Extracting archive
+      #   - Installing league/csv (9.7.4): Extracting archive
+      #   - Installing league/html-to-markdown (5.0.2): Extracting archive
+      #   - Installing setasign/fpdi (v2.3.6): Extracting archive
+      #   - Installing paragonie/random_compat (v9.99.100): Extracting archive
+      #   - Installing myclabs/deep-copy (1.10.2): Extracting archive
+      #   - Installing mpdf/mpdf (v8.0.17): Extracting archive
+      #   - Installing myclabs/php-enum (1.8.3): Extracting archive
+      #   - Installing zircote/swagger-php (2.1.0): Extracting archive
+      #   - Installing symfony/inflector (v4.4.34): Extracting archive
+      #   - Installing symfony/property-info (v4.4.31): Extracting archive
+      #   - Installing webmozart/assert (1.10.0): Extracting archive
+      #   - Installing phpdocumentor/reflection-common (2.2.0): Extracting archive
+      #   - Installing phpdocumentor/type-resolver (1.6.0): Extracting archive
+      #   - Installing phpdocumentor/reflection-docblock (5.3.0): Extracting archive
+      #   - Installing exsyst/swagger (v0.4.2): Extracting archive
+      #   - Installing nelmio/api-doc-bundle (v3.10.1): Extracting archive
+      #   - Installing nelmio/cors-bundle (2.2.0): Extracting archive
+      #   - Installing robrichards/xmlseclibs (3.1.1): Extracting archive
+      #   - Installing onelogin/php-saml (3.6.1): Extracting archive
+      #   - Installing pagerfanta/pagerfanta (v2.7.2): Extracting archive
+      #   - Installing psr/simple-cache (1.0.1): Extracting archive
+      #   - Installing psr/http-message (1.0.1): Extracting archive
+      #   - Installing psr/http-factory (1.0.1): Extracting archive
+      #   - Installing psr/http-client (1.0.1): Extracting archive
+      #   - Installing markbaker/matrix (3.0.0): Extracting archive
+      #   - Installing markbaker/complex (3.0.1): Extracting archive
+      #   - Installing maennchen/zipstream-php (2.1.0): Extracting archive
+      #   - Installing ezyang/htmlpurifier (v4.14.0): Extracting archive
+      #   - Installing phpoffice/phpspreadsheet (1.21.0): Extracting archive
+      #   - Installing laminas/laminas-escaper (2.9.0): Extracting archive
+      #   - Installing phpoffice/phpword (0.18.2): Extracting archive
+      #   - Installing sensio/framework-extra-bundle (v6.2.6): Extracting archive
+      #   - Installing symfony/mailer (v4.4.36): Extracting archive
+      #   - Installing symfony/amazon-mailer (v4.4.27): Extracting archive
+      #   - Installing symfony/css-selector (v4.4.27): Extracting archive
+      #   - Installing symfony/dotenv (v4.4.36): Extracting archive
+      #   - Installing symfony/expression-language (v4.4.34): Extracting archive
+      #   - Installing symfony/property-access (v4.4.36): Extracting archive
+      #   - Installing symfony/polyfill-intl-icu (v1.24.0): Extracting archive
+      #   - Installing symfony/intl (v4.4.36): Extracting archive
+      #   - Installing symfony/form (v4.4.36): Extracting archive
+      #   - Installing symfony/google-mailer (v4.4.34): Extracting archive
+      #   - Installing symfony/http-client (v4.4.36): Extracting archive
+      #   - Installing symfony/mailchimp-mailer (v4.4.27): Extracting archive
+      #   - Installing symfony/mailgun-mailer (v4.4.27): Extracting archive
+      #   - Installing monolog/monolog (1.26.1): Extracting archive
+      #   - Installing symfony/monolog-bridge (v4.4.27): Extracting archive
+      #   - Installing symfony/monolog-bundle (v3.7.1): Extracting archive
+      #   - Installing symfony/polyfill-intl-grapheme (v1.24.0): Extracting archive
+      #   - Installing symfony/postmark-mailer (v4.4.27): Extracting archive
+      #   - Installing symfony/security-http (v4.4.36): Extracting archive
+      #   - Installing symfony/security-guard (v4.4.27): Extracting archive
+      #   - Installing symfony/security-csrf (v4.4.27): Extracting archive
+      #   - Installing symfony/security-bundle (v4.4.36): Extracting archive
+      #   - Installing symfony/sendgrid-mailer (v4.4.30): Extracting archive
+      #   - Installing symfony/serializer (v4.4.36): Extracting archive
+      #   - Installing symfony/polyfill-uuid (v1.24.0): Extracting archive
+      #   - Installing symfony/uid (v5.4.2): Extracting archive
+      #   - Installing symfony/validator (v4.4.36): Extracting archive
+      #   - Installing symfony/webpack-encore-bundle (v1.13.2): Extracting archive
+      #   - Installing symfony/yaml (v4.4.36): Extracting archive
+      #   - Installing tijsverkoyen/css-to-inline-styles (2.2.4): Extracting archive
+      #   - Installing twig/cssinliner-extra (v3.3.5): Extracting archive
+      #   - Installing symfony/twig-bundle (v4.4.36): Extracting archive
+      #   - Installing twig/extra-bundle (v3.3.7): Extracting archive
+      #   - Installing lorenzo/pinky (1.0.5): Extracting archive
+      #   - Installing twig/inky-extra (v3.3.5): Extracting archive
+      #   - Installing twig/intl-extra (v3.3.5): Extracting archive
+      #   - Installing symfony/string (v5.4.2): Extracting archive
+      #   - Installing twig/string-extra (v3.3.5): Extracting archive
+      # Package symfony/inflector is abandoned, you should avoid using it. Use EnglishInflector from the String component instead.
+      # Package phpunit/php-token-stream is abandoned, you should avoid using it. No replacement was suggested.
+      # Generating optimized autoload files
+      # Run composer recipes at any time to see the status of your Symfony recipes.
+      # Executing script cache:clear [OK]
+      # Executing script assets:install [OK]
 
-    - name: Kimai app secret present
-      shell: "pwgen -n 75 1 > {{ kimai_docroot | dirname }}/app_secret.txt"
-      args:
-        creates: "{{ kimai_docroot | dirname }}/app_secret.txt"
-      become: true
-      become_user: "{{ kimai_user }}"
+    # - name: Kimai app secret present
+    #   ansible.builtin.shell: >
+    #     pwgen -n 75 1 > {{ kimai_repo }}/app_secret.txt
+    #   args:
+    #     creates: "{{ kimai_repo }}/app_secret.txt"
+    #   become: true
+    #   become_user: "{{ ansible_env.USER }}"
 
-    - name: Slurp a base64 encoded version of the app secret
-      slurp:
-        src: "{{ kimai_docroot | dirname }}/app_secret.txt"
-      register: kimai_app_secret_b64encoded
+    # - name: Slurp a base64 encoded version of the app secret
+    #   slurp:
+    #     src: "{{ kimai_repo }}/app_secret.txt"
+    #   register: kimai_app_secret_b64encoded
 
-    - name: Decode and set a fact based on the app secret file contents
-      set_fact:
-        kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"
+    # - name: Decode and set a fact based on the app secret file contents
+    #   set_fact:
+    #     kimai_app_secret: "{{ kimai_app_secret_b64encoded['content'] | b64decode | trim }}"
 
     - name: .env present
-      template:
+      ansible.builtin.template:
         src: templates/env.j2
-        dest: "{{ kimai_docroot | dirname }}/.env"
-        owner: "{{ kimai_user }}"
-        group: "{{ kimai_group | default(kimai_user) }}"
+        dest: "{{ kimai_repo }}/.env"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
         mode: 0640
 
     - name: local.yaml present
-      template:
+      ansible.builtin.template:
         src: local.yaml.j2
-        dest: "{{ kimai_docroot | dirname }}/config/packages/local.yaml"
-        owner: "{{ kimai_user }}"
-        group: "{{ kimai_group | default(kimai_user) }}"
+        dest: "{{ kimai_repo }}/config/packages/local.yaml"
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
         mode: 0640
 
     - name: Install Kimai
-      command: bin/console --no-ansi -n kimai:install
+      ansible.builtin.command: bin/console --no-ansi -n kimai:install
       args:
-        chdir: "{{ kimai_docroot | dirname }}"
+        chdir: "{{ kimai_repo }}"
       register: kimai_install
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
+      # Kimai installation running ...
+      # ==============================
+      # Database `kimai` for connection named default already exists. Skipped.
+      # [notice] Migrating up to DoctrineMigrations\\Version20220101204501
+      # [notice] finished in 18347.2ms, used 36M memory, 56 migrations executed, 184 sql queries
+      #  Rebuilding your cache, please be patient ...
+      #  // Clearing the cache for the prod environment with debug false
+      #  [OK] Cache for the "prod" environment (debug=false) was successfully cleared.
+      #  // Warming up the cache for the prod environment with debug false
+      #  [OK] Cache for the "prod" environment (debug=false) was successfully warmed.
+      #  [OK] Congratulations! Successfully installed Kimai version 1.17.1
+
 
     - name: Create the admin super user
+      when:
+        - kimai_admin_user is defined
+        - kimai_admin_email is defined
+        - kimai_admin_password is defined
       block:
 
-        - name: "Random password for {{ kimai_admin_user }} generated"
-          command: pwgen -n 20 1
-          register: kimai_admin_pwgen
-
-        - name: Set a fact for kimai_admin_password
-          set_fact:
-            kimai_admin_password: "{{ kimai_admin_pwgen.stdout | trim | quote }}"
-
+        # with failed_when to avoid task failing even if create-user script returns "error username is already used"
         - name: Create admin user account
-          command: "bin/console --no-ansi -n kimai:create-user {{ kimai_admin_user | quote }} {{ kimai_admin_email | quote }} ROLE_SUPER_ADMIN {{ kimai_admin_password }}"
+          ansible.builtin.command: >
+            bin/console --no-ansi -n
+            kimai:create-user {{ kimai_admin_user | quote }}
+            {{ kimai_admin_email | quote }}
+            ROLE_SUPER_ADMIN {{ kimai_admin_password | quote }}
           args:
-            chdir: "{{ kimai_docroot | dirname }}"
+            chdir: "{{ kimai_repo }}"
           register: kimai_create_user
+          # still fails the task
+          # changed_when: "'Success!' in kimai_create_user.stdout or 'The username is already used' in kimai_create_user.stdout"
+          # still fails the task
+          # changed_when: "'username is already used' in kimai_create_user.stdout"
+          # still fails the task
+          # changed_when: kimai_create_user.rc == 2
+          # this allows the task to report as changed and play to continue (only tested "username is already used" part)
+          # failed_when: ('username is already used' not in kimai_create_user.stdout) or ('Success!' not in kimai_create_user.stdout)
+          # https://serverfault.com/questions/960575/ansible-conditionals-wildcard-match-string
+          # https://docs.ansible.com/ansible/latest/user_guide/playbooks_tests.html#testing-strings
+          # this specific syntax works (note that not had to be outside, having two "is not" statements did not work)
+          failed_when: not (kimai_create_user.stdout is search("username is already used") or kimai_create_user.stdout is search("Success"))
+          no_log: true
+        # stdout: "[OK] Success! Created user: admin
+        # stdout: "[ERROR] email (admin)\n The email is already used.
+        # [ERROR] username (admin)\n The username is already used."
 
-        - name: "Password notification email sent to {{ kimai_admin_email }}"
-          mail:
-            from: "{{ kimai_notify_from | default('Webarchitects') }} <root@{{ inventory_hostname }}>"
-            to: "{{ kimai_admin_email }}"
-            subject: "[{{ kimai_notify_subject_tag | default('webarchitects') }}] Kimai admin login for {{ kimai_url }}"
-            headers: "{{ kimai_notify_headers }}"
-            charset: us-ascii
-            body: "{{ lookup('template', 'templates/install_email.j2') }}"
-            host: localhost
-            port: 25
-            secure: never
-          when: ( kimai_notify is not defined ) or ( kimai_notify )
+        # - name: "Password notification email sent to {{ kimai_admin_email }}"
+        #   mail:
+        #     from: "{{ kimai_notify_from | default('Webarchitects') }} <root@{{ inventory_hostname }}>"
+        #     to: "{{ kimai_admin_email }}"
+        #     subject: "[{{ kimai_notify_subject_tag | default('webarchitects') }}] Kimai admin login for {{ kimai_url }}"
+        #     headers: "{{ kimai_notify_headers }}"
+        #     charset: us-ascii
+        #     body: "{{ lookup('template', 'templates/install_email.j2') }}"
+        #     host: localhost
+        #     port: 25
+        #     secure: never
+        #   when: ( kimai_notify is not defined ) or ( kimai_notify )
+    # END OF BLOCK
 
-      when: ( kimai_admin_user is defined ) and ( kimai_admin_email is defined )
-      tags:
-        - kimai
+    # to improve performance, run the dump-env command
+    # https://symfony.com/doc/current/configuration.html#configuring-environment-variables-in-production
+    # - name: composer dump-env prod
+    #   community.general.composer:
+    #     command: dump-env
+    #     arguments: prod
+    #     working_dir: "{{ kimai_repo }}"
+    #     optimize_autoloader: true
+    #     no_dev: true
+    #   become: true
+    #   become_user: "{{ ansible_env.USER }}"
+    #   when: kimai_app_env == "prod"
+    
+    - name: composer dump-env prod
+      ansible.builtin.command: composer dump-env prod
+      args:
+        chdir: "{{ kimai_repo }}"
+      become: true
+      become_user: "{{ ansible_env.USER }}"
+      when: kimai_app_env == "prod"
 
     - name: Update the kimai_installed variable
-      include_tasks: version.yml
-
-  tags:
-    - kimai
-...
+      ansible.builtin.include_tasks: version.yml
+  # END OF BLOCK

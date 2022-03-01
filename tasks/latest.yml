@@ -1,9 +1,10 @@
 ---
+
 - name: Chack GitHub for the latest version
   block:
 
     - name: Check the latest version of Kimai
-      uri:
+      ansible.builtin.uri:
         url: https://github.com/kevinpapst/kimai2/releases/latest
         method: HEAD
         status_code: 302
@@ -12,7 +13,7 @@
       register: kimai_latest_headers
 
     - name: Debug Kimai latest URI
-      debug:
+      ansible.builtin.debug:
         msg:
           - "Location: {{ kimai_latest_headers.location }}"
           - "Path: {{ kimai_latest_headers.location | urlsplit('path') }}"
@@ -20,11 +21,11 @@
         verbosity: 1
 
     - name: Set a fact for the latest version of Kimai
-      set_fact:
+      ansible.builtin.set_fact:
         kimai_latest: "{{ kimai_latest_headers.location | urlsplit('path') | basename }}"
 
     - name: Warn if kimai_version is not equal to kimai_latest
-      debug:
+      ansible.builtin.debug:
         msg:
           - "The kimai_version variable is set to {{ kimai_version }}"
           - "The kimai_latest variable is set to {{ kimai_latest }}"
@@ -32,7 +33,4 @@
       when:
         - ( kimai_version is defined ) and ( kimai_latest is defined )
         - ( kimai_version != kimai_latest )
-
-  tags:
-    - kimai
-...
+  # END OF BLOCK

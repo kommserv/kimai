@@ -1,70 +1,71 @@
 ---
+
+- name: Check that all the variables needed are defined
+  ansible.builtin.assert:
+    that:
+      - kimai_version is defined
+      - kimai_app_env is defined
+      - kimai_user is defined
+      - kimai_group is defined
+      - kimai_wwwroot is defined
+      - kimai_dbuser is defined
+      - kimai_dbpass is defined
+      - kimai_dbhost is defined
+      - kimai_dbport is defined
+      - kimai_dbname is defined
+      - kimai_user_registration is defined
+
+# create database
+- ansible.builtin.import_tasks: database.yml
+
+
 - name: Install and / or upgrade Kimai
   block:
 
-    - name: Required packages present
-      apt:
-        pkg:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
           - git
           - gnupg
           - pwgen
         state: present
 
-    # TODO Additional checks on the following variables could be added
-    - name: Check that all the variables needed are defined
-      assert:
-        that:
-          - kimai_version is defined
-          - kimai_app_env is defined
-          - kimai_user is defined
-          - kimai_group is defined
-          - kimai_home is defined
-          - kimai_private is defined
-          - ( kimai_docroot is defined ) and ( kimai_docroot | basename == "public" )
-          - kimai_dbuser is defined
-          - kimai_dbpass is defined
-          - kimai_dbhost is defined
-          - kimai_dbport is defined
-          - kimai_dbname is defined
-          - kimai_notify_from is defined
-          - ( kimai_email_transport is defined ) and ( kimai_email_transport is regex("^smtp|sendmail|gmail|$") )
-          - kimai_email_host is defined
-          - kimai_email_port is defined
-          - kimai_user_registration is defined
+    # - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
+    #   getent:
+    #     database: passwd
+    #     split: ':'
 
-    - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
-      getent:
-        database: passwd
-        split: ':'
-
-    - name: "Fail if the {{ kimai_user }} user account doesn't exist"
-      fail:
-        msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
-      when: kimai_user not in getent_passwd
+    # - name: "Fail if the {{ kimai_user }} user account doesn't exist"
+    #   fail:
+    #     msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
+    #   when: kimai_user not in getent_passwd
 
     - name: Check the installed version of Kimai
-      include_tasks: version.yml
+      ansible.builtin.include_tasks: version.yml
 
     - name: Install Kimai
-      include_tasks: install.yml
+      ansible.builtin.include_tasks: install.yml
       when: kimai_installed is not defined
 
     - name: "Upgrade Kimai when {{ kimai_installed }} is less than {{ kimai_version }}"
-      include_tasks: upgrade.yml
+      ansible.builtin.include_tasks: upgrade.yml
       when:
         - ( kimai_version is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_version, '<') )
 
     - name: Check the latest version of Kimai
-      include_tasks: latest.yml
+      ansible.builtin.include_tasks: latest.yml
 
-    - name: A update is available
-      debug:
+    - name: An update is available
+      ansible.builtin.debug:
         msg: "Kimai version {{ kimai_installed }} is installed and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
       when:
         - ( kimai_latest is defined ) and ( kimai_installed is defined )
         - ( kimai_installed is version(kimai_latest, '<') )
+  # END OF BLOCK
 
-  tags:
-    - kimai
-...
+
+# change ownership to www-data and symlink to www-root
+- ansible.builtin.import_tasks: vhost.yml
+
+- ansible.builtin.import_tasks: backup.yml

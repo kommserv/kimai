@@ -1,0 +1,72 @@
+---
+
+# https://www.kimai.org/documentation/webserver-configuration.html
+
+- ansible.builtin.set_fact:
+    # https://stackoverflow.com/questions/58559043/ansible-create-a-list-from-comma-separated-string
+    vhost_domain: "{{ kimai_trusted_hosts.split(',')[0] }}"
+    vhost_email: "{{ kimai_admin_email }}"
+    vhost_wwwroot: "{{ kimai_wwwroot }}/public"
+
+# up until this point, the Kimai repo was owned by ansible_env.USER
+# instead of moving the directory to our www-root, I prefer to symlink it
+# to avoid any possible problems with our webserver, we change ownership
+# of the entire tree to the apache user
+- name: "Change ownership to {{ kimai_user }}"
+  ansible.builtin.file: 
+    path: "{{ kimai_repo }}"
+    # both state: directory and recurse are necessary to change ownership of all dir contents,
+    # and not just the folder itself
+    state: directory
+    recurse: yes
+    owner: "{{ kimai_user }}"
+    group: "{{ kimai_user }}"
+
+# https://www.kimai.org/documentation/installation.html#file-permissions
+- name: Adjust file permissions for Kimai
+  ansible.builtin.file: 
+    path: "{{ item.path }}"
+    state: touch
+    owner: "{{ kimai_user }}"
+    group: "{{ kimai_user }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "{{ kimai_repo }}/var", mode: "g+rw" }
+    - { path: "{{ kimai_repo }}/public/avatars", mode: "g+rw" }
+
+# note: this task does not report "changed" beyond the first setup
+# so it's not very useful to run handlers based on it
+- name: "Symlink Kimai repo to www-root"
+  ansible.builtin.file:
+    src: "{{ kimai_repo }}"
+    dest: "{{ kimai_wwwroot }}"
+    state: link
+
+
+- name: "Configure Apache vhost {{ vhost_domain }}"
+  block:
+
+    - name: "Configure vhost for {{ vhost_domain }}"
+      ansible.builtin.template:
+        src: vhost.conf.j2
+        dest: "/etc/apache2/sites-available/{{ vhost_domain }}.conf"
+        owner: root
+        group: root
+        mode: u=rw,go=r
+
+    - name: "Check whether site {{ vhost_domain }} is already enabled"
+      ansible.builtin.stat:
+        path: "/etc/apache2/sites-enabled/{{ vhost_domain }}.conf"
+      register: vhost_enabled
+
+    - name: "a2ensite {{ vhost_domain }}.conf"
+      ansible.builtin.command: "a2ensite {{ vhost_domain }}.conf"
+      when: not (vhost_enabled.stat.exists | bool)
+  # END OF BLOCK
+
+
+# note: these {{ apache_* }} vars are defined in the apache role
+- name: reload apache
+  ansible.builtin.systemd:
+    name: "{{ apache_service }}"
+    state: "{{ apache_reload_state }}"

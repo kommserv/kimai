@@ -1,27 +1,40 @@
 ---
+
 # https://github.com/kevinpapst/kimai2/releases
-kimai_version: 1.14.3
+kimai_version: 1.17.1
 kimai_app_env: prod
+# note, *_proxies and *_hosts are comma-separated strings, and not proper lists
+kimai_trusted_proxies: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_trusted_proxies') }}"
+kimai_trusted_hosts: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_trusted_hosts') }}"
+kimai_app_secret: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_app_secret') }}"
+
+kimai_repo: "{{ ansible_env.HOME }}/public/kimai"
 kimai_user: www-data
 kimai_group: www-data
-kimai_home: /var/www
-kimai_private: "{{ kimai_home }}/kimai"
-kimai_docroot: "{{ kimai_home }}/kimai/public"
-kimai_tz: Europe/London
-kimai_locale: en
-kimai_country: GB
-kimai_currency: GBP
+kimai_wwwroot: /var/www/html/kimai
+
+kimai_tz: Europe/Stockholm
+kimai_locale: sv
+kimai_country: SE
+kimai_currency: SEK
+
 # The MySQL user, password and database name need to be set using these variables:
-# kimai_dbuser:
-# kimai_dbpass:
-# kimai_dbname:
+kimai_dbuser: kimai
+kimai_dbpass: "{{ lookup('community.general.passwordstore', 'hosts/karachi/mysql/users/kimai') }}"
+kimai_dbname: kimai
 kimai_dbhost: localhost
 kimai_dbport: 3306
+# mariadb_socket: /var/run/mysqld/mysqld.sock is defined in the mariadb role
+kimai_dbsocket: "{{ mariadb_socket | default('/var/run/mysqld/mysqld.sock') }}"
+
 # If these variables are set then the admin user will be created on install:
-# kimai_admin_user:
-# kimai_admin_email:
+kimai_admin_user: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/users/admin subkey=usr') }}"
+kimai_admin_email: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/users/admin subkey=email') }}"
+kimai_admin_password: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/users/admin') }}"
+
 # Send the admin password by email to the admin:
-# kimai_notify: true
+kimai_notify: false
+
 kimai_notify_from: "{{ kimai_user }}@{{ inventory_hostname }}"
 kimai_notify_reply_to: "Webarchitects <support@webarchitects.coop>"
 kimai_notify_headers:
@@ -31,6 +44,7 @@ kimai_notify_subject_tag: webarchitects
 kimai_notify_signature: |
   Webarch Co-operative Limited
   https://www.webarch.coop/
+
 # Email settings
 # https://www.kimai.org/documentation/emails.html
 # https://symfony.com/doc/current/reference/configuration/swiftmailer.html
@@ -42,6 +56,6 @@ kimai_email_password: ""
 kimai_email_encryption: ""
 kimai_email_auth_mode: ""
 kimai_email_command: /usr/sbin/sendmail -t -i
+
 # Set kimai_user_registration to true to allow anyone to create an account after the install:
 kimai_user_registration: false
-...

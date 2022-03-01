@@ -1,19 +1,22 @@
 ---
+
 - name: Check the installed version of Kimai
   block:
 
-    - name: "Stat {{ kimai_docroot | dirname }}/bin/console"
-      stat:
-        path: "{{ kimai_docroot | dirname }}/bin/console"
+    - name: "Stat {{ kimai_wwwroot }}/bin/console"
+      ansible.builtin.stat:
+        path: "{{ kimai_wwwroot }}/bin/console"
       register: kimai_console
 
+
     - name: Check the verson of Kimai when the console is present
+      when: kimai_console.stat.exists | bool
       block:
 
         - name: Check which version of Kimai is installed
-          command: bin/console --no-ansi -n kimai:version --short
+          ansible.builtin.command: bin/console --no-ansi -n kimai:version --short
           args:
-            chdir: "{{ kimai_docroot | dirname }}"
+            chdir: "{{ kimai_wwwroot }}"
           check_mode: false
           changed_when: false
           register: kimai_install_check
@@ -22,12 +25,8 @@
           become_user: "{{ kimai_user }}"
 
         - name: Set a variable for the installed version of Kimai
-          set_fact:
+          ansible.builtin.set_fact:
             kimai_installed: "{{ kimai_install_check.stdout | trim }}"
           when: ( kimai_install_check is defined ) and ( kimai_install_check.rc == 0 )
-
-      when: kimai_console.stat.exists
-
-  tags:
-    - kimai
-...
+    # END OF BLOCK
+  # END OF BLOCK

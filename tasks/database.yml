@@ -1,0 +1,42 @@
+---
+
+# The ansible mysql modules require the pip-module PyMySQL to be installed on the node,
+# for the user that Ansible executes the module as (which is root in this case).
+# Make sure that PyMySQL is installed for root on the Ansible remote 
+# (this is handled by my python3 and mariadb roles)
+
+# check what mysql databases exist
+# https://docs.ansible.com/ansible/latest/collections/community/mysql/mysql_info_module.html
+- name: Collect info on all existing mysql databases
+  community.mysql.mysql_info:
+    login_unix_socket: "{{ kimai_dbsocket }}"
+    filter:
+      - "databases"
+  register: host_mysql_info
+
+# If mysql database {{ kimai_dbname }} does not exist, create it
+# https://docs.ansible.com/ansible/latest/modules/mysql_db_module.html#mysql-db-module
+- name: Create empty Kimai database
+  community.mysql.mysql_db:
+    check_implicit_admin: yes
+    login_unix_socket: "{{ kimai_dbsocket }}"
+    name: "{{ kimai_dbname }}"
+    state: present
+    login_host: "{{ kimai_dbhost }}"
+    login_port: "{{ kimai_dbport }}"
+  no_log: true
+  when: "kimai_dbname not in host_mysql_info"
+  register: wlbg_mysql_database
+
+# create mysql user and grant it permissions to kimai database
+- name: "Create mysql user {{ kimai_dbuser }} and grant it permissions on database {{ kimai_dbname }}"
+  community.mysql.mysql_user:
+    check_implicit_admin: yes
+    login_unix_socket: "{{ kimai_dbsocket }}"
+    name: "{{ kimai_dbuser }}"
+    state: present
+    password: "{{ kimai_dbpass }}"
+    login_host: "{{ kimai_dbhost }}"
+    login_port: "{{ kimai_dbport }}"
+    priv: "{{ kimai_dbname }}.*:ALL"
+  no_log: true

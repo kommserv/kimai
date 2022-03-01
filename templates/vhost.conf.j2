@@ -1,0 +1,25 @@
+<VirtualHost *:80>
+   ServerAdmin {{ vhost_email }}
+   ServerName {{ vhost_domain }}
+
+   DocumentRoot {{ vhost_wwwroot }}
+   <Directory {{ vhost_wwwroot }}>
+      AllowOverride All
+      Require all granted
+      FallbackResource /index.php
+   </Directory>
+
+   <Directory {{ vhost_wwwroot | dirname }}>
+      Options FollowSymlinks
+   </Directory>
+
+   # optionally disable the fallback resource for the asset directories
+   # which will allow Apache to return a 404 error when files are
+   # not found instead of passing the request to Symfony
+   <Directory {{ vhost_wwwroot }}/bundles>
+      FallbackResource disabled
+   </Directory>
+    
+   ErrorLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_error.log
+   CustomLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_access.log combined
+</VirtualHost>

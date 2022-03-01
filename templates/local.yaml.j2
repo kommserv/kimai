@@ -1,4 +1,5 @@
 ---
+
 # {{ ansible_managed }}
 
 kimai:
@@ -19,12 +20,3 @@ kimai:
     user:
         registration: false
 {% endif %}
-
-{% if kimai_email_transport == "sendmail" %}
-swiftmailer:
-  transport: sendmail
-  command: {{ kimai_sendmail_command }}
-{% endif %}
-
-# vim: set ft=yaml
-...

@@ -1,39 +1,44 @@
 ---
+
 - name: Update Kimai
   block:
 
+    - name: "Temporarily set {{ ansible_env.USER }} as owner of Kimai repo"
+      ansible.builtin.file:
+        path: "{{ kimai_repo }}"
+        state: directory
+        recurse: yes
+        owner: "{{ ansible_env.USER }}"
+        group: "{{ ansible_env.USER }}"
+
     - name: "Kimai git repo updated to version {{ kimai_version }}"
-      git:
+      ansible.builtin.git:
         repo: https://github.com/kevinpapst/kimai2.git
-        dest: "{{ kimai_docroot | dirname }}"
+        dest: "{{ kimai_repo }}"
         version: "{{ kimai_version }}"
         depth: 1
         clone: true
         update: true
         force: false
-        verify_commit: true
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
 
-    - name: Composer install
-      composer:
+    - name: composer install
+      community.general.composer:
         command: install
-        working_dir: "{{ kimai_docroot | dirname }}"
+        working_dir: "{{ kimai_repo }}"
         optimize_autoloader: true
         no_dev: true
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
 
     - name: "Update Kimai from version {{ kimai_installed }} to version {{ kimai_version }}"
-      command: bin/console --no-ansi -n kimai:update
+      ansible.builtin.command: bin/console --no-ansi -n kimai:update
       args:
-        chdir: "{{ kimai_docroot | dirname }}"
+        chdir: "{{ kimai_repo }}"
       become: true
-      become_user: "{{ kimai_user }}"
+      become_user: "{{ ansible_env.USER }}"
 
     - name: Check the installed version of Kimai
       include_tasks: version.yml
-
-  tags:
-    - kimai
-...
+  # END OF BLOCK
