@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Kimai
+Type=Application
+Exec=/usr/bin/chromium-browser --new-window --app="https://{{ hostinfo.karachi.kimai }}"
+GenericName={{ hostinfo.karachi.kimai }}
+Comment=Time tracker
+Categories=Network;WebDevelopment;
+Keywords=kimai;webapp;time tracking;intervals;
+StartupWMClass=chromium-app-kimai
+Icon={{ desktop_icon.dest }}
+Version=1.1
+{# empty MimeType line just to suppress "lacks Mimetype" warning during update-desktop-database #}
+MimeType=

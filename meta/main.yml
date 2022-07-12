@@ -1,6 +1,15 @@
 ---
 
 dependencies:
-  - { role: apache, become: true, tags: apache }
-  - { role: composer, become: true, tags: composer }
-  - { role: mariadb, become: true, tags: mariadb }
+  - role: apache
+    become: true
+    tags: apache
+    when: "'workstation' not in group_names"
+  - role: composer
+    become: true
+    tags: composer
+    when: "'workstation' not in group_names"
+  - role: mariadb
+    become: true
+    tags: mariadb
+    when: "'workstation' not in group_names"

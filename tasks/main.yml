@@ -1,71 +1,82 @@
 ---
 
-- name: Check that all the variables needed are defined
-  ansible.builtin.assert:
-    that:
-      - kimai_version is defined
-      - kimai_app_env is defined
-      - kimai_user is defined
-      - kimai_group is defined
-      - kimai_wwwroot is defined
-      - kimai_dbuser is defined
-      - kimai_dbpass is defined
-      - kimai_dbhost is defined
-      - kimai_dbport is defined
-      - kimai_dbname is defined
-      - kimai_user_registration is defined
-
-# create database
-- ansible.builtin.import_tasks: database.yml
-
-
-- name: Install and / or upgrade Kimai
+- name: Setup Kimai
+  when: "'workstation' not in group_names"
   block:
 
-    - name: Install required packages
-      ansible.builtin.apt:
-        name:
-          - git
-          - gnupg
-          - pwgen
-        state: present
+    - name: Check that all the variables needed are defined
+      ansible.builtin.assert:
+        that:
+          - kimai_version is defined
+          - kimai_app_env is defined
+          - kimai_user is defined
+          - kimai_group is defined
+          - kimai_wwwroot is defined
+          - kimai_dbuser is defined
+          - kimai_dbpass is defined
+          - kimai_dbhost is defined
+          - kimai_dbport is defined
+          - kimai_dbname is defined
+          - kimai_user_registration is defined
 
-    # - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
-    #   getent:
-    #     database: passwd
-    #     split: ':'
+    # create database
+    - ansible.builtin.import_tasks: database.yml
 
-    # - name: "Fail if the {{ kimai_user }} user account doesn't exist"
-    #   fail:
-    #     msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
-    #   when: kimai_user not in getent_passwd
 
-    - name: Check the installed version of Kimai
-      ansible.builtin.include_tasks: version.yml
+    - name: Install and / or upgrade Kimai
+      block:
 
-    - name: Install Kimai
-      ansible.builtin.include_tasks: install.yml
-      when: kimai_installed is not defined
+        - name: Install required packages
+          ansible.builtin.apt:
+            name:
+              - git
+              - gnupg
+              - pwgen
+            state: present
 
-    - name: "Upgrade Kimai when {{ kimai_installed }} is less than {{ kimai_version }}"
-      ansible.builtin.include_tasks: upgrade.yml
-      when:
-        - ( kimai_version is defined ) and ( kimai_installed is defined )
-        - ( kimai_installed is version(kimai_version, '<') )
+        # - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
+        #   getent:
+        #     database: passwd
+        #     split: ':'
 
-    - name: Check the latest version of Kimai
-      ansible.builtin.include_tasks: latest.yml
+        # - name: "Fail if the {{ kimai_user }} user account doesn't exist"
+        #   fail:
+        #     msg: "The {{ kimai_user }} user account doesn't exist on {{ inventory_hostname }}"
+        #   when: kimai_user not in getent_passwd
 
-    - name: An update is available
-      ansible.builtin.debug:
-        msg: "Kimai version {{ kimai_installed }} is installed and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
-      when:
-        - ( kimai_latest is defined ) and ( kimai_installed is defined )
-        - ( kimai_installed is version(kimai_latest, '<') )
+        - name: Check the installed version of Kimai
+          ansible.builtin.include_tasks: version.yml
+
+        - name: Install Kimai
+          ansible.builtin.include_tasks: install.yml
+          when: kimai_installed is not defined
+
+        - name: "Upgrade Kimai when {{ kimai_installed }} is less than {{ kimai_version }}"
+          ansible.builtin.include_tasks: upgrade.yml
+          when:
+            - ( kimai_version is defined ) and ( kimai_installed is defined )
+            - ( kimai_installed is version(kimai_version, '<') )
+
+        - name: Check the latest version of Kimai
+          ansible.builtin.include_tasks: latest.yml
+
+        - name: An update is available
+          ansible.builtin.debug:
+            msg: "Kimai version {{ kimai_installed }} is installed and the latest version available is {{ kimai_latest }}, update the kimai_version variable to upgrade"
+          when:
+            - ( kimai_latest is defined ) and ( kimai_installed is defined )
+            - ( kimai_installed is version(kimai_latest, '<') )
+      # END OF BLOCK
+
+
+    # change ownership to www-data and symlink to www-root
+    - ansible.builtin.import_tasks: vhost.yml
+
+    - ansible.builtin.import_tasks: backup.yml
+      tags: backups-only
   # END OF BLOCK
 
 
-# change ownership to www-data and symlink to www-root
-- ansible.builtin.import_tasks: vhost.yml
-
-- ansible.builtin.import_tasks: backup.yml
+- ansible.builtin.import_tasks: desktop-entry.yml
+  when: "'workstation' in group_names"
+  tags: desktop-entry
