@@ -45,7 +45,7 @@
         #   when: kimai_user not in getent_passwd
 
         - name: Check the installed version of Kimai
-          ansible.builtin.include_tasks: version.yml
+          ansible.builtin.include_tasks: version-check.yml
 
         - name: Install Kimai
           ansible.builtin.include_tasks: install.yml
