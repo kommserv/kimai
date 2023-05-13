@@ -9,6 +9,8 @@
         method: HEAD
         status_code: 302
         follow_redirects: none
+      run_once: true
+      delegate_to: localhost
       check_mode: false
       register: kimai_latest_headers
 
