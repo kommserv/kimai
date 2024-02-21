@@ -40,5 +40,5 @@
       become_user: "{{ ansible_env.USER }}"
 
     - name: Check the installed version of Kimai
-      include_tasks: version.yml
+      ansible.builtin.import_tasks: version-check.yml
   # END OF BLOCK

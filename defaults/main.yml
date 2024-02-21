@@ -7,6 +7,8 @@ kimai_app_env: prod
 kimai_trusted_proxies: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_trusted_proxies') }}"
 kimai_trusted_hosts: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_trusted_hosts') }}"
 kimai_app_secret: "{{ lookup('community.general.passwordstore', 'hosts/karachi/kimai/info subkey=kimai_app_secret') }}"
+# first entry in trusted_hosts is the primary domain
+kimai_domain: "{{ kimai_trusted_hosts.split(',')[0] }}"
 
 kimai_repo: "{{ ansible_env.HOME }}/public/kimai"
 kimai_user: www-data

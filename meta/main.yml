@@ -1,15 +1,18 @@
 ---
 
 dependencies:
+  # https://codeberg.org/ansible/apache
   - role: apache
     become: true
     tags: apache
-    when: "'workstation' not in group_names"
+    when: group_names is not search("workstation")
+  # https://codeberg.org/ansible/composer
   - role: composer
     become: true
     tags: composer
-    when: "'workstation' not in group_names"
+    when: group_names is not search("workstation")
+  # https://codeberg.org/ansible/mariadb
   - role: mariadb
     become: true
     tags: mariadb
-    when: "'workstation' not in group_names"
+    when: group_names is not search("workstation")

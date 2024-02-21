@@ -1,6 +1,6 @@
 ---
 
-- name: Chack GitHub for the latest version
+- name: Check GitHub for the latest version
   block:
 
     - name: Check the latest version of Kimai

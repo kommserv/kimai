@@ -1,7 +1,7 @@
 ---
 
 - name: Setup Kimai
-  when: "'workstation' not in group_names"
+  when: group_names is not search("workstation")
   block:
 
     - name: Check that all the variables needed are defined
@@ -45,20 +45,20 @@
         #   when: kimai_user not in getent_passwd
 
         - name: Check the installed version of Kimai
-          ansible.builtin.include_tasks: version-check.yml
+          ansible.builtin.import_tasks: version-check.yml
 
         - name: Install Kimai
-          ansible.builtin.include_tasks: install.yml
+          ansible.builtin.import_tasks: install.yml
           when: kimai_installed is not defined
 
         - name: "Upgrade Kimai when {{ kimai_installed }} is less than {{ kimai_version }}"
-          ansible.builtin.include_tasks: upgrade.yml
+          ansible.builtin.import_tasks: upgrade.yml
           when:
             - ( kimai_version is defined ) and ( kimai_installed is defined )
             - ( kimai_installed is version(kimai_version, '<') )
 
         - name: Check the latest version of Kimai
-          ansible.builtin.include_tasks: latest.yml
+          ansible.builtin.import_tasks: latest.yml
 
         - name: An update is available
           ansible.builtin.debug:
@@ -78,5 +78,5 @@
 
 
 - ansible.builtin.import_tasks: desktop-entry.yml
-  when: "'workstation' in group_names"
+  when: group_names is search("workstation")
   tags: desktop-entry

@@ -12,7 +12,7 @@
 - name: "Create desktop entry"
   ansible.builtin.template:
     src: "{{ role_name }}.desktop.j2"
-    dest: "{{ xdg_desktop_entries }}/{{ hostinfo.karachi.kimai }}.desktop"
+    dest: "{{ xdg_desktop_entries }}/{{ kimai_domain }}.desktop"
     owner: "{{ ansible_env.USER }}"
     group: "{{ ansible_env.USER }}"
     mode: ug=rw,o=r

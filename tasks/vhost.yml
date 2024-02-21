@@ -4,7 +4,7 @@
 
 - ansible.builtin.set_fact:
     # https://stackoverflow.com/questions/58559043/ansible-create-a-list-from-comma-separated-string
-    vhost_domain: "{{ kimai_trusted_hosts.split(',')[0] }}"
+    vhost_domain: "{{ kimai_domain }}"
     vhost_email: "{{ kimai_admin_email }}"
     vhost_wwwroot: "{{ kimai_wwwroot }}/public"
 
@@ -13,7 +13,7 @@
 # to avoid any possible problems with our webserver, we change ownership
 # of the entire tree to the apache user
 - name: "Change ownership to {{ kimai_user }}"
-  ansible.builtin.file: 
+  ansible.builtin.file:
     path: "{{ kimai_repo }}"
     # both state: directory and recurse are necessary to change ownership of all dir contents,
     # and not just the folder itself
@@ -24,7 +24,7 @@
 
 # https://www.kimai.org/documentation/installation.html#file-permissions
 - name: Adjust file permissions for Kimai
-  ansible.builtin.file: 
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: touch
     owner: "{{ kimai_user }}"

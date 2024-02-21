@@ -19,7 +19,7 @@
    <Directory {{ vhost_wwwroot }}/bundles>
       FallbackResource disabled
    </Directory>
-    
+
    ErrorLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_error.log
    CustomLog ${APACHE_LOG_DIR}/{{ vhost_domain }}_access.log combined
 </VirtualHost>
