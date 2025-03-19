@@ -1,7 +1,6 @@
 ---
 
 - name: Setup Kimai
-  when: group_names is not search("workstation")
   block:
 
     - name: Check that all the variables needed are defined
@@ -77,10 +76,9 @@
   # END OF BLOCK
 
 
-- ansible.builtin.import_tasks: desktop-entry.yml
-  when: group_names is search("workstation")
-  tags: desktop-entry
-
 - ansible.builtin.import_tasks: log-git-state.yml
   tags:
     - log-git-state
+    - backups-only
+    - config-only
+    - updates-only

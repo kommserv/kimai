@@ -105,6 +105,9 @@
         src: "{{ this_backup_database_dump }}"
         dest: "{{ backup_root_path }}/hosts/{{ ansible_hostname }}/{{ this_backup_name }}/kimai-v{{ kimai_version }}.sql.gz"
         flat: yes
+      # if fetch is run with become the transfer size is effectively doubled
+      # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/fetch_module.html#notes
+      become: false
 
     - name: "Remove the dump from {{ ansible_hostname }}"
       ansible.builtin.file:
