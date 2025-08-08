@@ -4,12 +4,9 @@ dependencies:
   # https://codeberg.org/ansible/apache
   - role: apache
     become: true
-    tags: apache
   # https://codeberg.org/ansible/composer
   - role: composer
     become: true
-    tags: composer
   # https://codeberg.org/ansible/mariadb
   - role: mariadb
     become: true
-    tags: mariadb
